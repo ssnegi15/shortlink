@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  workflows: write
 
 jobs:
   generate:
@@ -32,11 +33,13 @@ jobs:
           dotnet tool install --global dotnet-ef --version 10.0.0
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
+      - name: Restore solution
+        working-directory: ShortLink
+        run: dotnet restore ShortLink.sln
+
       - name: Generate EF migration
         working-directory: ShortLink
         run: |
-          dotnet restore
-          dotnet build -c Release --no-restore
           dotnet ef migrations add InitialCreate \
             --project src/ShortLink.Api \
             --startup-project src/ShortLink.Api \
@@ -44,23 +47,11 @@ jobs:
 
       - name: Build
         working-directory: ShortLink
-        run: dotnet build -c Release --no-restore
+        run: dotnet build ShortLink.sln -c Release --no-restore
 
       - name: Test
         working-directory: ShortLink
-        run: dotnet test -c Release --no-restore
-
-      - name: Create ZIP
-        run: |
-          rm -f ShortLink.zip
-
-          cd ShortLink
-
-          zip -r ../ShortLink.zip . \
-            -x "**/bin/*" \
-            -x "**/obj/*"
-
-          cd ..
+        run: dotnet test ShortLink.sln -c Release --no-build --no-restore
 
       - name: Copy generated project into repository
         run: |
@@ -68,13 +59,10 @@ jobs:
             ! -name "." \
             ! -name ".git" \
             ! -name "ShortLink" \
-            ! -name "ShortLink.zip" \
             -exec rm -rf {} +
 
           cp -R ShortLink/. .
-
           rm -rf ShortLink
-
           rm -f create_shortlink.py
 
       - name: Commit generated project
@@ -91,9 +79,3 @@ jobs:
             git commit -m "Generate ShortLink project"
             git push
           fi
-
-      - name: Upload ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: ShortLink
-          path: ShortLink.zip
