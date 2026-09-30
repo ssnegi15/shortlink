@@ -36,6 +36,7 @@ jobs:
         working-directory: ShortLink
         run: |
           dotnet restore
+          dotnet build -c Release --no-restore
           dotnet ef migrations add InitialCreate \
             --project src/ShortLink.Api \
             --startup-project src/ShortLink.Api \
