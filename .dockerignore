@@ -2,4 +2,5 @@
 **/obj/
 .git/
 .github/
+.env
 ShortLink.zip

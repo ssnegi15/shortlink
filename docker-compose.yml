@@ -4,9 +4,9 @@ services:
     environment:
       POSTGRES_DB: shortlink
       POSTGRES_USER: shortlink
-      POSTGRES_PASSWORD: shortlink
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-only-change-me}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7.4-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
@@ -34,12 +34,13 @@ services:
       dockerfile: src/ShortLink.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=shortlink;Username=shortlink;Password=${POSTGRES_PASSWORD:-local-only-change-me}
       Redis__Configuration: redis:6379
       Redis__InstanceName: shortlink:
       ShortLink__BaseUrl: http://localhost:8080
+      ShortLink__AdminApiKey: ${SHORTLINK_ADMIN_API_KEY:-local-development-only}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,7 +50,7 @@ services:
   prometheus:
     image: prom/prometheus:v3.5.0
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
@@ -57,8 +58,10 @@ services:
 
   grafana:
     image: grafana/grafana:12.2.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-local-admin-change-me}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

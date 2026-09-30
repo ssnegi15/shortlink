@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using ShortLink.Api.Data;
 using ShortLink.Api.Services;
@@ -9,6 +11,32 @@ using StackExchange.Redis;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                               ForwardedHeaders.XForwardedProto;
+
+    var knownProxies = builder.Configuration
+        .GetSection("ForwardedHeaders:KnownProxies")
+        .Get<string[]>() ?? [];
+
+    foreach (var address in knownProxies)
+    {
+        if (System.Net.IPAddress.TryParse(address, out var ipAddress))
+            options.KnownProxies.Add(ipAddress);
+    }
+
+    if (builder.Configuration.GetValue<bool>("ForwardedHeaders:TrustAll"))
+    {
+        options.KnownProxies.Clear();
+        options.KnownIPNetworks.Clear();
+        options.KnownIPNetworks.Add(new System.Net.IPNetwork(
+            System.Net.IPAddress.Any,
+            0));
+        options.ForwardLimit = 1;
+    }
+});
 
 var postgres = builder.Configuration.GetConnectionString("Postgres")
     ?? throw new InvalidOperationException("ConnectionStrings:Postgres is required.");
@@ -63,7 +91,16 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
+
+if (app.Environment.IsDevelopment() ||
+    app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
@@ -75,17 +112,41 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = check => check.Tags.Contains("ready")
 });
 
-app.MapPrometheusScrapingEndpoint("/metrics");
+if (app.Configuration.GetValue<bool>("Metrics:Enabled", true))
+    app.MapPrometheusScrapingEndpoint("/metrics");
 
 app.MapPost("/admin/links", async (
     CreateLinkRequest request,
+    HttpContext context,
     AppDbContext db,
     IConfiguration configuration,
+    IDistributedRateLimiter rateLimiter,
     CancellationToken cancellationToken) =>
 {
+    var adminApiKey = configuration["ShortLink:AdminApiKey"];
+
+    if (string.IsNullOrWhiteSpace(adminApiKey))
+    {
+        return Results.Problem(
+            "ShortLink:AdminApiKey is not configured.",
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+
+    if (!HasValidAdminKey(context, adminApiKey))
+        return Results.Unauthorized();
+
+    var partitionKey = $"admin:{GetClientPartitionKey(context)}";
+
+    if (!await rateLimiter.AllowAsync(partitionKey, cancellationToken))
+    {
+        context.Response.Headers.RetryAfter = "1";
+        return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+    }
+
     if (string.IsNullOrWhiteSpace(request.DestinationUrl) ||
         !Uri.TryCreate(request.DestinationUrl, UriKind.Absolute, out var destination) ||
-        destination.Scheme is not ("http" or "https"))
+        destination.Scheme is not ("http" or "https") ||
+        destination.ToString().Length > 2048)
     {
         return Results.BadRequest(new
         {
@@ -107,11 +168,11 @@ app.MapPost("/admin/links", async (
         });
     }
 
-    if (await db.Links.AnyAsync(x => x.Code == code, cancellationToken))
+    if (request.ExpiresAt <= DateTimeOffset.UtcNow)
     {
-        return Results.Conflict(new
+        return Results.BadRequest(new
         {
-            error = "The supplied code already exists."
+            error = "expiresAt must be in the future."
         });
     }
 
@@ -125,7 +186,22 @@ app.MapPost("/admin/links", async (
     };
 
     db.Links.Add(entity);
-    await db.SaveChangesAsync(cancellationToken);
+
+    try
+    {
+        await db.SaveChangesAsync(cancellationToken);
+    }
+    catch (DbUpdateException ex) when
+        (ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation
+        })
+    {
+        return Results.Conflict(new
+        {
+            error = "The supplied code already exists."
+        });
+    }
 
     var baseUrl = configuration["ShortLink:BaseUrl"] ?? "http://localhost:8080";
 
@@ -169,12 +245,20 @@ app.Run();
 
 static string GetClientPartitionKey(HttpContext context)
 {
-    var forwarded = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-
-    if (!string.IsNullOrWhiteSpace(forwarded))
-        return forwarded.Split(',')[0].Trim();
-
     return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+}
+
+static bool HasValidAdminKey(HttpContext context, string expectedKey)
+{
+    var suppliedKey = context.Request.Headers["X-Admin-Key"].FirstOrDefault();
+
+    if (string.IsNullOrEmpty(suppliedKey))
+        return false;
+
+    var expectedBytes = System.Text.Encoding.UTF8.GetBytes(expectedKey);
+    var suppliedBytes = System.Text.Encoding.UTF8.GetBytes(suppliedKey);
+
+    return CryptographicOperations.FixedTimeEquals(expectedBytes, suppliedBytes);
 }
 
 static string GenerateCode(int length)

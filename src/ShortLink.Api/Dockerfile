@@ -9,4 +9,5 @@ WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 COPY --from=build /app/publish .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "ShortLink.Api.dll"]

@@ -5,7 +5,14 @@ using StackExchange.Redis;
 
 namespace ShortLink.Api.Services;
 
-public sealed record RedirectResult(bool Found, string? DestinationUrl);
+public sealed record RedirectResult(
+    bool Found,
+    string? DestinationUrl,
+    DateTimeOffset? ExpiresAt = null)
+{
+    public bool IsExpired(DateTimeOffset now) =>
+        ExpiresAt is not null && ExpiresAt <= now;
+}
 
 public sealed class RedirectService(
     AppDbContext db,
@@ -47,7 +54,7 @@ public sealed class RedirectService(
 
         var cacheKey = $"shortlink:redirect:{normalized}";
 
-        return await cache.GetOrCreateAsync(
+        var result = await cache.GetOrCreateAsync(
             cacheKey,
             async token =>
             {
@@ -58,7 +65,10 @@ public sealed class RedirectService(
                         x.IsActive &&
                         (x.ExpiresAt == null ||
                          x.ExpiresAt > DateTimeOffset.UtcNow))
-                    .Select(x => new RedirectResult(true, x.DestinationUrl))
+                    .Select(x => new RedirectResult(
+                        true,
+                        x.DestinationUrl,
+                        x.ExpiresAt))
                     .SingleOrDefaultAsync(token);
 
                 if (link is not null)
@@ -82,5 +92,13 @@ public sealed class RedirectService(
             },
             PositiveOptions,
             cancellationToken: cancellationToken);
+
+        if (!result.Found || result.IsExpired(DateTimeOffset.UtcNow))
+        {
+            await cache.RemoveAsync(cacheKey, cancellationToken);
+            return new RedirectResult(false, null, result.ExpiresAt);
+        }
+
+        return result;
     }
 }

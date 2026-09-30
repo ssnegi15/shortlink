@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: shortlink-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./src/ShortLink.Api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/live
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Database__ApplyMigrations
+        value: "true"
+      - key: Metrics__Enabled
+        value: "false"
+      - key: ForwardedHeaders__TrustAll
+        value: "true"
+      - key: ConnectionStrings__Postgres
+        sync: false
+      - key: Redis__Configuration
+        sync: false
+      - key: ShortLink__AdminApiKey
+        sync: false
+      - key: ShortLink__BaseUrl
+        sync: false

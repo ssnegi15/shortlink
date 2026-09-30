@@ -7,3 +7,4 @@
 TestResults/
 coverage/
 .env
+README.deploy.md

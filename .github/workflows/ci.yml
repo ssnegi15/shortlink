@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ShortLink.sln
+
+      - name: Build
+        run: dotnet build ShortLink.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ShortLink.sln --configuration Release --no-build --verbosity normal
