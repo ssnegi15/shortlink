@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: write
-  workflows: write
 
 jobs:
   generate:
@@ -33,7 +32,7 @@ jobs:
           dotnet tool install --global dotnet-ef --version 10.0.0
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
-      - name: Restore solution
+      - name: Restore
         working-directory: ShortLink
         run: dotnet restore ShortLink.sln
 
@@ -53,7 +52,7 @@ jobs:
         working-directory: ShortLink
         run: dotnet test ShortLink.sln -c Release --no-build --no-restore
 
-      - name: Copy generated project into repository
+      - name: Replace repository with generated project
         run: |
           find . -maxdepth 1 \
             ! -name "." \
@@ -63,13 +62,11 @@ jobs:
 
           cp -R ShortLink/. .
           rm -rf ShortLink
-          rm -f create_shortlink.py
 
       - name: Commit generated project
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add .
 
