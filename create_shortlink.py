@@ -7,14 +7,14 @@ import shutil
 ROOT = Path("ShortLink")
 
 
-def text(lines):
-    return "\n".join(lines) + "\n"
+def lines(*items):
+    return "\n".join(items) + "\n"
 
 
-def write_file(path, content):
-    destination = ROOT / path
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(content, encoding="utf-8")
+def write_file(relative_path, content):
+    path = ROOT / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
 
     files = {}
 
-    files["ShortLink.sln"] = text([
+    files["ShortLink.sln"] = lines(
         "Microsoft Visual Studio Solution File, Format Version 12.00",
         "# Visual Studio Version 17",
         "VisualStudioVersion = 17.0.31903.59",
@@ -45,21 +45,21 @@ def main():
         "        {11111111-1111-1111-1111-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU",
         "        {11111111-1111-1111-1111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU",
         "        {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-        "        {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-        "        {22222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-        "        {22222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU",
+        "        {22222222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+        "        {22222222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU",
+        "        {22222222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU",
         "        {33333333-3333-3333-3333-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
         "        {33333333-3333-3333-3333-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU",
         "        {33333333-3333-3333-3333-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-        "        {33333333-3333-3333-3333-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU",
+        "        {33333333-3333-3333-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU",
         "    EndGlobalSection",
         "    GlobalSection(SolutionProperties) = preSolution",
         "        HideSolutionNode = FALSE",
         "    EndGlobalSection",
         "EndGlobal",
-    ])
+    )
 
-    files["src/ShortLink.Api/ShortLink.Api.csproj"] = text([
+    files["src/ShortLink.Api/ShortLink.Api.csproj"] = lines(
         '<Project Sdk="Microsoft.NET.Sdk.Web">',
         "  <PropertyGroup>",
         "    <TargetFramework>net10.0</TargetFramework>",
@@ -72,8 +72,8 @@ def main():
         "      <PrivateAssets>all</PrivateAssets>",
         "      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>",
         "    </PackageReference>",
-        '    <PackageReference Include="Npgsql" Version="10.0.3" />',
         '    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />',
+        '    <PackageReference Include="Npgsql" Version="10.0.3" />',
         '    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.10.0" />',
         '    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />',
         '    <PackageReference Include="StackExchange.Redis" Version="2.8.47" />',
@@ -83,9 +83,9 @@ def main():
         '    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.18.0-beta.1" />',
         "  </ItemGroup>",
         "</Project>",
-    ])
+    )
 
-    files["src/ShortLink.Api/appsettings.json"] = text([
+    files["src/ShortLink.Api/appsettings.json"] = lines(
         "{",
         '  "ConnectionStrings": {',
         '    "Postgres": "Host=localhost;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink"',
@@ -112,9 +112,9 @@ def main():
         "  },",
         '  "AllowedHosts": "*"',
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Data/ShortLinkEntity.cs"] = text([
+    files["src/ShortLink.Api/Data/ShortLinkEntity.cs"] = lines(
         "namespace ShortLink.Api.Data;",
         "",
         "public sealed class ShortLinkEntity",
@@ -126,9 +126,9 @@ def main():
         "    public bool IsActive { get; set; }",
         "    public DateTimeOffset? ExpiresAt { get; set; }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Data/AppDbContext.cs"] = text([
+    files["src/ShortLink.Api/Data/AppDbContext.cs"] = lines(
         "using Microsoft.EntityFrameworkCore;",
         "",
         "namespace ShortLink.Api.Data;",
@@ -141,7 +141,7 @@ def main():
         "    protected override void OnModelCreating(ModelBuilder modelBuilder)",
         "    {",
         "        var link = modelBuilder.Entity<ShortLinkEntity>();",
-        "        link.ToTable(\"short_links\");",
+        '        link.ToTable("short_links");',
         "        link.HasKey(x => x.Id);",
         "        link.Property(x => x.Code).HasMaxLength(32).IsRequired();",
         "        link.HasIndex(x => x.Code).IsUnique();",
@@ -151,9 +151,9 @@ def main():
         "        link.HasIndex(x => new { x.Code, x.IsActive });",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Services/NpgsqlHealthCheck.cs"] = text([
+    files["src/ShortLink.Api/Services/NpgsqlHealthCheck.cs"] = lines(
         "using Microsoft.Extensions.Diagnostics.HealthChecks;",
         "using Npgsql;",
         "",
@@ -184,9 +184,9 @@ def main():
         "        }",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Services/RedisHealthCheck.cs"] = text([
+    files["src/ShortLink.Api/Services/RedisHealthCheck.cs"] = lines(
         "using Microsoft.Extensions.Diagnostics.HealthChecks;",
         "using StackExchange.Redis;",
         "",
@@ -209,9 +209,9 @@ def main():
         "        }",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Services/DistributedRateLimiter.cs"] = text([
+    files["src/ShortLink.Api/Services/DistributedRateLimiter.cs"] = lines(
         "using StackExchange.Redis;",
         "",
         "namespace ShortLink.Api.Services;",
@@ -226,11 +226,8 @@ def main():
         "    IConfiguration configuration,",
         "    ILogger<RedisDistributedRateLimiter> logger) : IDistributedRateLimiter",
         "{",
-        '    private const string Script =',
-        '        "local current = redis.call(\'INCR\', KEYS[1])\\n" +',
-        '        "if current == 1 then\\n" +',
-        '        "    redis.call(\'EXPIRE\', KEYS[1], ARGV[1])\\n" +',
-        '        "end\\n" +',
+        '    private const string Script = "local current = redis.call(\'INCR\', KEYS[1]) " +',
+        '        "if current == 1 then redis.call(\'EXPIRE\', KEYS[1], ARGV[1]) end " +',
         '        "return current";',
         "",
         "    public async ValueTask<bool> AllowAsync(",
@@ -239,7 +236,7 @@ def main():
         "    {",
         '        var limit = Math.Max(1, configuration.GetValue("RateLimiting:PermitLimit", 120));',
         '        var window = Math.Max(1, configuration.GetValue("RateLimiting:WindowSeconds", 1));',
-        '        var failOpen = configuration.GetValue("RateLimiting:FailOpen", false);',
+        "        var failOpen = configuration.GetValue("RateLimiting:FailOpen", false);",
         "        var bucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / window;",
         '        var key = $"shortlink:ratelimit:{bucket}:{partitionKey}";',
         "",
@@ -248,7 +245,7 @@ def main():
         "            var database = redis.GetDatabase();",
         "            var result = await database.ScriptEvaluateAsync(",
         "                Script,",
-        "                new RedisKey[] { new RedisKey(key) },",
+        "                new RedisKey[] { key },",
         "                new RedisValue[] { window });",
         "            return (long)result <= limit;",
         "        }",
@@ -259,9 +256,9 @@ def main():
         "        }",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Services/RedirectService.cs"] = text([
+    files["src/ShortLink.Api/Services/RedirectService.cs"] = lines(
         "using Microsoft.EntityFrameworkCore;",
         "using Microsoft.Extensions.Caching.Hybrid;",
         "using StackExchange.Redis;",
@@ -342,9 +339,9 @@ def main():
         "            cancellationToken: cancellationToken);",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Program.cs"] = text([
+    files["src/ShortLink.Api/Program.cs"] = lines(
         "using System.Security.Cryptography;",
         "using Microsoft.EntityFrameworkCore;",
         "using OpenTelemetry.Metrics;",
@@ -434,7 +431,7 @@ def main():
         "    }",
         "",
         '    var length = configuration.GetValue("ShortLink:CodeLength", 12);',
-        '    var code = string.IsNullOrWhiteSpace(request.Code)',
+        "    var code = string.IsNullOrWhiteSpace(request.Code)",
         "        ? GenerateCode(length)",
         "        : request.Code.Trim();",
         "",
@@ -505,7 +502,7 @@ def main():
         "    if (!string.IsNullOrWhiteSpace(forwarded))",
         "        return forwarded.Split(',')[0].Trim();",
         "",
-        "    return context.Connection.RemoteIpAddress?.ToString() ?? \"unknown\";",
+        '    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";',
         "}",
         "",
         "static string GenerateCode(int length)",
@@ -526,9 +523,9 @@ def main():
         "    DateTimeOffset? ExpiresAt);",
         "",
         "public partial class Program { }",
-    ])
+    )
 
-    files["tests/ShortLink.Tests/ShortLink.Tests.csproj"] = text([
+    files["tests/ShortLink.Tests/ShortLink.Tests.csproj"] = lines(
         '<Project Sdk="Microsoft.NET.Sdk">',
         "  <PropertyGroup>",
         "    <TargetFramework>net10.0</TargetFramework>",
@@ -549,9 +546,9 @@ def main():
         '    <ProjectReference Include="../../src/ShortLink.Api/ShortLink.Api.csproj" />',
         "  </ItemGroup>",
         "</Project>",
-    ])
+    )
 
-    files["tests/ShortLink.Tests/BasicTests.cs"] = text([
+    files["tests/ShortLink.Tests/BasicTests.cs"] = lines(
         "using Xunit;",
         "",
         "namespace ShortLink.Tests;",
@@ -576,9 +573,9 @@ def main():
         "        Assert.Equal(404, 404);",
         "    }",
         "}",
-    ])
+    )
 
-    files["tests/ShortLink.Benchmarks/ShortLink.Benchmarks.csproj"] = text([
+    files["tests/ShortLink.Benchmarks/ShortLink.Benchmarks.csproj"] = lines(
         '<Project Sdk="Microsoft.NET.Sdk">',
         "  <PropertyGroup>",
         "    <TargetFramework>net10.0</TargetFramework>",
@@ -590,9 +587,9 @@ def main():
         '    <PackageReference Include="BenchmarkDotNet" Version="0.15.6" />',
         "  </ItemGroup>",
         "</Project>",
-    ])
+    )
 
-    files["tests/ShortLink.Benchmarks/Program.cs"] = text([
+    files["tests/ShortLink.Benchmarks/Program.cs"] = lines(
         "using BenchmarkDotNet.Attributes;",
         "using BenchmarkDotNet.Running;",
         "",
@@ -615,9 +612,9 @@ def main():
         "        return Code.Length > 0 && Code.Length <= 32;",
         "    }",
         "}",
-    ])
+    )
 
-    files["src/ShortLink.Api/Dockerfile"] = text([
+    files["src/ShortLink.Api/Dockerfile"] = lines(
         "FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build",
         "WORKDIR /src",
         "COPY . .",
@@ -629,9 +626,9 @@ def main():
         "EXPOSE 8080",
         "COPY --from=build /app/publish .",
         'ENTRYPOINT ["dotnet", "ShortLink.Api.dll"]',
-    ])
+    )
 
-    files["docker-compose.yml"] = text([
+    files["docker-compose.yml"] = lines(
         "services:",
         "  postgres:",
         "    image: postgres:17",
@@ -707,9 +704,9 @@ def main():
         "  postgres-data:",
         "  redis-data:",
         "  grafana-data:",
-    ])
+    )
 
-    files["prometheus.yml"] = text([
+    files["prometheus.yml"] = lines(
         "global:",
         "  scrape_interval: 5s",
         "  evaluation_interval: 5s",
@@ -720,9 +717,9 @@ def main():
         "    static_configs:",
         "      - targets:",
         "          - api:8080",
-    ])
+    )
 
-    files["monitoring/grafana/provisioning/datasources/prometheus.yml"] = text([
+    files["monitoring/grafana/provisioning/datasources/prometheus.yml"] = lines(
         "apiVersion: 1",
         "",
         "datasources:",
@@ -732,9 +729,9 @@ def main():
         "    access: proxy",
         "    url: http://prometheus:9090",
         "    isDefault: true",
-    ])
+    )
 
-    files["monitoring/grafana/provisioning/dashboards/dashboard.yml"] = text([
+    files["monitoring/grafana/provisioning/dashboards/dashboard.yml"] = lines(
         "apiVersion: 1",
         "",
         "providers:",
@@ -746,9 +743,9 @@ def main():
         "    updateIntervalSeconds: 30",
         "    options:",
         "      path: /var/lib/grafana/dashboards",
-    ])
+    )
 
-    files["monitoring/grafana/dashboards/shortlink.json"] = text([
+    files["monitoring/grafana/dashboards/shortlink.json"] = lines(
         "{",
         '  "annotations": { "list": [] },',
         '  "editable": true,',
@@ -769,9 +766,9 @@ def main():
         '  "title": "ShortLink",',
         '  "version": 1',
         "}",
-    ])
+    )
 
-    files["loadtest/redirect.js"] = text([
+    files["loadtest/redirect.js"] = lines(
         "import http from 'k6/http';",
         "import { check } from 'k6';",
         "",
@@ -805,17 +802,17 @@ def main():
         "    'redirect returns 302': (r) => r.status === 302,",
         "  });",
         "}",
-    ])
+    )
 
-    files[".dockerignore"] = text([
+    files[".dockerignore"] = lines(
         "**/bin/",
         "**/obj/",
         ".git/",
         ".github/",
         "ShortLink.zip",
-    ])
+    )
 
-    files[".gitignore"] = text([
+    files[".gitignore"] = lines(
         "**/bin/",
         "**/obj/",
         ".vs/",
@@ -826,9 +823,9 @@ def main():
         "coverage/",
         "ShortLink.zip",
         ".env",
-    ])
+    )
 
-    files[".github/workflows/ci.yml"] = text([
+    files[".github/workflows/ci.yml"] = lines(
         "name: ShortLink CI",
         "",
         "on:",
@@ -843,7 +840,6 @@ def main():
         "jobs:",
         "  build-test:",
         "    runs-on: ubuntu-latest",
-        "",
         "    steps:",
         "      - name: Checkout",
         "        uses: actions/checkout@v4",
@@ -853,7 +849,7 @@ def main():
         "        with:",
         '          dotnet-version: "10.x"',
         "",
-        "      - name: Restore solution",
+        "      - name: Restore",
         "        run: dotnet restore ShortLink.sln",
         "",
         "      - name: Build",
@@ -861,28 +857,35 @@ def main():
         "",
         "      - name: Test",
         "        run: dotnet test ShortLink.sln -c Release --no-build --no-restore",
-    ])
+    )
 
-    files["README.md"] = text([
+    files["README.md"] = lines(
         "# ShortLink",
         "",
         "Production-oriented ASP.NET Core / .NET 10 URL shortener.",
         "",
-        "## Request flow",
+        "## Endpoints",
         "",
-        "GET /{code}",
+        "- POST /admin/links creates a short link.",
+        "- GET /{code} returns HTTP 302 when found.",
+        "- GET /{code} returns HTTP 404 when missing.",
+        "- GET /health/live provides liveness.",
+        "- GET /health/ready provides readiness.",
+        "- GET /metrics exposes Prometheus metrics.",
         "",
-        "-> Redis distributed rate limiter",
+        "## Architecture",
         "",
-        "-> HybridCache L1 memory",
+        "Redirect requests use a Redis-backed distributed rate limiter, HybridCache L1 memory plus L2 Redis, and PostgreSQL as the durable source of truth.",
         "",
-        "-> HybridCache L2 Redis",
+        "Positive redirects are cached for 24 hours.",
         "",
-        "-> PostgreSQL",
+        "Negative lookups are cached in Redis for 15 seconds.",
         "",
-        "-> positive 24-hour cache or negative 15-second cache",
+        "PostgreSQL retry-on-failure is enabled for transient failures.",
         "",
-        "-> HTTP 302 or 404",
+        "The Redis configuration can be replaced with a Redis Cluster or HA endpoint in production.",
+        "",
+        "The PostgreSQL connection string can point to a managed PostgreSQL HA endpoint in production.",
         "",
         "## Local development",
         "",
@@ -899,7 +902,7 @@ def main():
         "## Create a link",
         "",
         "```bash",
-        'curl -X POST http://localhost:8080/admin/links \\',
+        "curl -X POST http://localhost:8080/admin/links \\",
         "  -H 'Content-Type: application/json' \\",
         "  -d '{\"destinationUrl\":\"https://example.com\"}'",
         "```",
@@ -909,35 +912,6 @@ def main():
         "```bash",
         "curl -i http://localhost:8080/aZ91kLm2Pq7X",
         "```",
-        "",
-        "Existing links return HTTP 302.",
-        "",
-        "Missing links return HTTP 404.",
-        "",
-        "## Health",
-        "",
-        "- GET /health/live",
-        "- GET /health/ready",
-        "",
-        "## Metrics",
-        "",
-        "GET /metrics",
-        "",
-        "## Caching",
-        "",
-        "Positive redirects use HybridCache with L1 memory and L2 Redis for 24 hours.",
-        "",
-        "Missing codes use Redis negative caching for 15 seconds.",
-        "",
-        "## Distributed rate limiting",
-        "",
-        "The redirect endpoint uses an atomic Redis Lua counter.",
-        "",
-        "Default: 120 requests per second per client partition.",
-        "",
-        "## EF migrations",
-        "",
-        "CI generates EF Core migrations with dotnet-ef.",
         "",
         "## Load testing",
         "",
@@ -952,13 +926,12 @@ def main():
         "- Protect /admin/links with authentication and authorization.",
         "- Restrict /metrics.",
         "- Use TLS.",
-        "- Keep PostgreSQL and Redis private.",
+        "- Put PostgreSQL behind an HA endpoint.",
+        "- Use Redis HA or Redis Cluster.",
+        "- Configure trusted proxy handling before trusting forwarded client IP headers.",
+        "- Add edge/API gateway rate limiting in addition to the application-level distributed limiter.",
         "- Use external secret management.",
-        "- Configure a PostgreSQL HA endpoint.",
-        "- Configure Redis HA or Redis Cluster.",
-        "- Configure trusted proxy handling before trusting forwarded IP headers.",
-        "- Add edge/API gateway rate limiting for additional protection.",
-    ])
+    )
 
     for path, content in files.items():
         write_file(path, content)
