@@ -1,1315 +1,1505 @@
 from pathlib import Path
 import shutil
-import subprocess
 import textwrap
 import zipfile
+
 
 ROOT = Path("ShortLink")
 ZIP = Path("ShortLink.zip")
 
 
-def file(path, content):
-    p = ROOT / path
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(
+def write_file(relative_path: str, content: str):
+    path = ROOT / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
         textwrap.dedent(content).lstrip(),
         encoding="utf-8"
     )
 
 
 def main():
+
     if ROOT.exists():
         shutil.rmtree(ROOT)
 
     if ZIP.exists():
         ZIP.unlink()
 
-    # ================================================================
+    # ============================================================
     # Solution
-    # ================================================================
+    # ============================================================
 
-    file("ShortLink.sln", r"""
-    Microsoft Visual Studio Solution File, Format Version 12.00
-    # Visual Studio Version 17
+    write_file(
+        "ShortLink.sln",
+        r"""
+        Microsoft Visual Studio Solution File, Format Version 12.00
+        # Visual Studio Version 17
+        VisualStudioVersion = 17.0.31903.59
+        MinimumVisualStudioVersion = 10.0.40219.1
 
-    VisualStudioVersion = 17.0.31903.59
-    MinimumVisualStudioVersion = 10.0.40219.1
+        Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Api", "src\ShortLink.Api\ShortLink.Api.csproj", "{11111111-1111-1111-1111-111111111111}"
+        EndProject
 
-    Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Api", "src\ShortLink.Api\ShortLink.Api.csproj", "{11111111-1111-1111-1111-111111111111}"
-    EndProject
-    Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Tests", "tests\ShortLink.Tests\ShortLink.Tests.csproj", "{22222222-2222-2222-2222-222222222222}"
-    EndProject
+        Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Tests", "tests\ShortLink.Tests\ShortLink.Tests.csproj", "{22222222-2222-2222-2222-222222222222}"
+        EndProject
 
-    Global
+        Global
 
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        Debug|Any CPU = Debug|Any CPU
-        Release|Any CPU = Release|Any CPU
-    EndGlobalSection
+        GlobalSection(SolutionConfigurationPlatforms) = preSolution
+            Debug|Any CPU = Debug|Any CPU
+            Release|Any CPU = Release|Any CPU
+        EndGlobalSection
 
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution
-        {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {11111111-1111-1111-1111-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {11111111-1111-1111-1111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
-    EndGlobalSection
+        GlobalSection(ProjectConfigurationPlatforms) = postSolution
+            {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+            {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+            {11111111-1111-1111-1111-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+            {11111111-1111-1111-1111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
 
-    EndGlobal
-    """)
+            {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+            {22222222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+            {22222222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+            {22222222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
+        EndGlobalSection
 
-    # ================================================================
+        EndGlobal
+        """
+    )
+
+    # ============================================================
     # API project
-    # ================================================================
+    # ============================================================
 
-    file("src/ShortLink.Api/ShortLink.Api.csproj", r"""
-    <Project Sdk="Microsoft.NET.Sdk.Web">
+    write_file(
+        "src/ShortLink.Api/ShortLink.Api.csproj",
+        r"""
+        <Project Sdk="Microsoft.NET.Sdk.Web">
 
-      <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <InvariantGlobalization>true</InvariantGlobalization>
-      </PropertyGroup>
+          <PropertyGroup>
+            <TargetFramework>net10.0</TargetFramework>
+            <Nullable>enable</Nullable>
+            <ImplicitUsings>enable</ImplicitUsings>
+            <InvariantGlobalization>true</InvariantGlobalization>
+          </PropertyGroup>
 
-      <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design"
-                          Version="10.0.0"
-                          PrivateAssets="all" />
+          <ItemGroup>
 
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"
-                          Version="10.0.0" />
+            <PackageReference
+              Include="Microsoft.EntityFrameworkCore.Design"
+              Version="10.0.0"
+              PrivateAssets="all" />
 
-        <PackageReference Include="Microsoft.Extensions.Caching.Hybrid"
-                          Version="10.0.0" />
+            <PackageReference
+              Include="Npgsql.EntityFrameworkCore.PostgreSQL"
+              Version="10.0.0" />
 
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis"
-                          Version="10.0.0" />
+            <PackageReference
+              Include="Microsoft.Extensions.Caching.Hybrid"
+              Version="10.10.0" />
 
-        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore"
-                          Version="1.17.0" />
+            <PackageReference
+              Include="Microsoft.Extensions.Caching.StackExchangeRedis"
+              Version="10.0.0" />
 
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting"
-                          Version="1.17.0" />
+            <PackageReference
+              Include="OpenTelemetry.Exporter.Prometheus.AspNetCore"
+              Version="1.18.0-beta.1" />
 
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore"
-                          Version="1.17.0" />
+            <PackageReference
+              Include="OpenTelemetry.Extensions.Hosting"
+              Version="1.18.0" />
 
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime"
-                          Version="1.17.0" />
-      </ItemGroup>
+            <PackageReference
+              Include="OpenTelemetry.Instrumentation.AspNetCore"
+              Version="1.18.0" />
 
-    </Project>
-    """)
+            <PackageReference
+              Include="OpenTelemetry.Instrumentation.Runtime"
+              Version="1.18.0" />
 
-    # ================================================================
-    # Entity
-    # ================================================================
+          </ItemGroup>
 
-    file("src/ShortLink.Api/Data/ShortLinkEntity.cs", r"""
-    namespace ShortLink.Api.Data;
+        </Project>
+        """
+    )
 
-    public sealed class ShortLinkEntity
-    {
-        public long Id { get; set; }
+    # ============================================================
+    # Database entity
+    # ============================================================
 
-        public required string Code { get; set; }
+    write_file(
+        "src/ShortLink.Api/Data/ShortLinkEntity.cs",
+        r"""
+        namespace ShortLink.Api.Data;
 
-        public required string Destination { get; set; }
-
-        public bool IsActive { get; set; } = true;
-
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DateTimeOffset? ExpiresAt { get; set; }
-    }
-    """)
-
-    # ================================================================
-    # DbContext
-    # ================================================================
-
-    file("src/ShortLink.Api/Data/AppDbContext.cs", r"""
-    using Microsoft.EntityFrameworkCore;
-
-    namespace ShortLink.Api.Data;
-
-    public sealed class AppDbContext(
-        DbContextOptions<AppDbContext> options)
-        : DbContext(options)
-    {
-        public DbSet<ShortLinkEntity> ShortLinks =>
-            Set<ShortLinkEntity>();
-
-        protected override void OnModelCreating(
-            ModelBuilder modelBuilder)
+        public sealed class ShortLinkEntity
         {
-            var entity =
-                modelBuilder.Entity<ShortLinkEntity>();
+            public long Id { get; set; }
 
-            entity.ToTable("short_links");
+            public required string Code { get; set; }
 
-            entity.HasKey(x => x.Id);
+            public required string Destination { get; set; }
 
-            entity.Property(x => x.Code)
-                .HasMaxLength(64)
-                .IsRequired();
+            public bool IsActive { get; set; } = true;
 
-            entity.HasIndex(x => x.Code)
-                .IsUnique();
+            public DateTimeOffset CreatedAt { get; set; }
 
-            entity.Property(x => x.Destination)
-                .HasMaxLength(2048)
-                .IsRequired();
-
-            entity.Property(x => x.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasIndex(
-                x => new { x.Code, x.IsActive });
+            public DateTimeOffset? ExpiresAt { get; set; }
         }
-    }
-    """)
+        """
+    )
 
-    # ================================================================
-    # Redirect cache service
-    # ================================================================
+    # ============================================================
+    # EF Core DbContext
+    # ============================================================
 
-    file("src/ShortLink.Api/Services/RedirectService.cs", r"""
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Caching.Hybrid;
-    using ShortLink.Api.Data;
+    write_file(
+        "src/ShortLink.Api/Data/AppDbContext.cs",
+        r"""
+        using Microsoft.EntityFrameworkCore;
 
-    namespace ShortLink.Api.Services;
+        namespace ShortLink.Api.Data;
 
-    public sealed record RedirectResult(
-        bool Found,
-        string? Destination);
-
-    internal sealed record CachedRedirect(
-        bool Found,
-        string? Destination);
-
-    public sealed class RedirectService(
-        AppDbContext db,
-        HybridCache cache)
-    {
-        private const string PositivePrefix =
-            "redirect:positive:";
-
-        private const string NegativePrefix =
-            "redirect:negative:";
-
-        private static readonly TimeSpan PositiveTtl =
-            TimeSpan.FromHours(24);
-
-        private static readonly TimeSpan PositiveL1Ttl =
-            TimeSpan.FromMinutes(5);
-
-        private static readonly TimeSpan NegativeTtl =
-            TimeSpan.FromSeconds(15);
-
-        public async Task<RedirectResult> ResolveAsync(
-            string code,
-            CancellationToken ct)
+        public sealed class AppDbContext(
+            DbContextOptions<AppDbContext> options)
+            : DbContext(options)
         {
-            var positiveKey =
-                PositivePrefix + code;
+            public DbSet<ShortLinkEntity> ShortLinks =>
+                Set<ShortLinkEntity>();
 
-            var negativeKey =
-                NegativePrefix + code;
-
-            /*
-             * Negative cache:
-             *
-             * 15 seconds in L1
-             * 15 seconds in Redis
-             */
-            var missing =
-                await cache.GetOrCreateAsync(
-                    negativeKey,
-                    async cancellationToken =>
-                    {
-                        var exists =
-                            await db.ShortLinks
-                                .AsNoTracking()
-                                .AnyAsync(
-                                    x =>
-                                        x.Code == code &&
-                                        x.IsActive &&
-                                        (
-                                            x.ExpiresAt == null ||
-                                            x.ExpiresAt >
-                                            DateTimeOffset.UtcNow
-                                        ),
-                                    cancellationToken);
-
-                        return !exists;
-                    },
-                    new HybridCacheEntryOptions
-                    {
-                        Expiration = NegativeTtl,
-                        LocalCacheExpiration =
-                            NegativeTtl
-                    },
-                    ct);
-
-            if (missing)
-                return new RedirectResult(false, null);
-
-            /*
-             * Positive cache:
-             *
-             * Redis = 24 hours
-             * local memory = 5 minutes
-             *
-             * HybridCache also provides stampede protection.
-             */
-            var cached =
-                await cache.GetOrCreateAsync(
-                    positiveKey,
-                    async cancellationToken =>
-                    {
-                        var row =
-                            await db.ShortLinks
-                                .AsNoTracking()
-                                .SingleOrDefaultAsync(
-                                    x =>
-                                        x.Code == code &&
-                                        x.IsActive &&
-                                        (
-                                            x.ExpiresAt == null ||
-                                            x.ExpiresAt >
-                                            DateTimeOffset.UtcNow
-                                        ),
-                                    cancellationToken);
-
-                        if (row == null)
-                            return new CachedRedirect(
-                                false,
-                                null);
-
-                        return new CachedRedirect(
-                            true,
-                            row.Destination);
-                    },
-                    new HybridCacheEntryOptions
-                    {
-                        Expiration = PositiveTtl,
-                        LocalCacheExpiration =
-                            PositiveL1Ttl
-                    },
-                    ct);
-
-            if (!cached.Found)
+            protected override void OnModelCreating(
+                ModelBuilder modelBuilder)
             {
-                await cache.SetAsync(
-                    negativeKey,
-                    true,
-                    new HybridCacheEntryOptions
+                var entity =
+                    modelBuilder.Entity<ShortLinkEntity>();
+
+                entity.ToTable("short_links");
+
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Code)
+                    .HasMaxLength(64)
+                    .IsRequired();
+
+                entity.HasIndex(x => x.Code)
+                    .IsUnique();
+
+                entity.Property(x => x.Destination)
+                    .HasMaxLength(2048)
+                    .IsRequired();
+
+                entity.Property(x => x.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasIndex(
+                    x => new
                     {
-                        Expiration = NegativeTtl,
-                        LocalCacheExpiration =
-                            NegativeTtl
-                    },
-                    ct);
-
-                return new RedirectResult(false, null);
-            }
-
-            return new RedirectResult(
-                true,
-                cached.Destination);
-        }
-    }
-    """)
-
-    # ================================================================
-    # Program
-    # ================================================================
-
-    file("src/ShortLink.Api/Program.cs", r"""
-    using System.Threading.RateLimiting;
-    using Microsoft.EntityFrameworkCore;
-    using OpenTelemetry.Metrics;
-    using OpenTelemetry.Resources;
-    using ShortLink.Api.Data;
-    using ShortLink.Api.Services;
-
-    var builder =
-        WebApplication.CreateBuilder(args);
-
-    var postgres =
-        builder.Configuration
-            .GetConnectionString("Postgres")
-        ?? throw new InvalidOperationException(
-            "Postgres connection string is missing.");
-
-    var redis =
-        builder.Configuration
-            .GetConnectionString("Redis")
-        ?? throw new InvalidOperationException(
-            "Redis connection string is missing.");
-
-    // ------------------------------------------------------------
-    // PostgreSQL
-    // ------------------------------------------------------------
-
-    builder.Services.AddDbContextPool<AppDbContext>(
-        options =>
-        {
-            options.UseNpgsql(
-                postgres,
-                npgsql =>
-                    npgsql.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay:
-                            TimeSpan.FromSeconds(5),
-                        errorCodesToAdd: null));
-        });
-
-    // ------------------------------------------------------------
-    // Redis
-    // ------------------------------------------------------------
-
-    builder.Services.AddStackExchangeRedisCache(
-        options =>
-        {
-            options.Configuration = redis;
-            options.InstanceName = "shortlink:";
-        });
-
-    // ------------------------------------------------------------
-    // HybridCache
-    // ------------------------------------------------------------
-
-    builder.Services.AddHybridCache(
-        options =>
-        {
-            options.MaximumKeyLength = 256;
-            options.MaximumPayloadBytes = 16 * 1024;
-        });
-
-    builder.Services.AddScoped<RedirectService>();
-
-    // ------------------------------------------------------------
-    // Rate limiting
-    //
-    // This protects each API instance.
-    // Production deployments should put a true distributed/global
-    // limiter at the edge or use a Redis-backed implementation.
-    // ------------------------------------------------------------
-
-    builder.Services.AddRateLimiter(
-        options =>
-        {
-            options.RejectionStatusCode = 429;
-
-            options.GlobalLimiter =
-                PartitionedRateLimiter.Create<
-                    HttpContext,
-                    string>(
-                    context =>
-                    {
-                        var key =
-                            context.Connection
-                                .RemoteIpAddress?
-                                .ToString()
-                            ?? "unknown";
-
-                        return
-                            RateLimitPartition
-                                .GetTokenBucketLimiter(
-                                    key,
-                                    _ =>
-                                        new TokenBucketRateLimiterOptions
-                                        {
-                                            TokenLimit = 100,
-                                            TokensPerPeriod = 100,
-                                            ReplenishmentPeriod =
-                                                TimeSpan.FromSeconds(1),
-                                            AutoReplenishment = true,
-                                            QueueLimit = 0
-                                        });
+                        x.Code,
+                        x.IsActive
                     });
-        });
+            }
+        }
+        """
+    )
 
-    // ------------------------------------------------------------
-    // Metrics
-    // ------------------------------------------------------------
+    # ============================================================
+    # Redirect service
+    # ============================================================
 
-    builder.Services
-        .AddOpenTelemetry()
-        .ConfigureResource(
-            resource =>
-                resource.AddService(
-                    "shortlink-api"))
-        .WithMetrics(
-            metrics =>
-            {
-                metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddPrometheusExporter();
-            });
+    write_file(
+        "src/ShortLink.Api/Services/RedirectService.cs",
+        r"""
+        using Microsoft.EntityFrameworkCore;
+        using Microsoft.Extensions.Caching.Hybrid;
+        using ShortLink.Api.Data;
 
-    // ------------------------------------------------------------
-    // Health checks
-    // ------------------------------------------------------------
+        namespace ShortLink.Api.Services;
 
-    builder.Services
-        .AddHealthChecks()
-        .AddNpgSql(postgres)
-        .AddRedis(redis);
+        public sealed record RedirectResult(
+            bool Found,
+            string? Destination);
 
-    var app = builder.Build();
+        internal sealed record CachedRedirect(
+            bool Found,
+            string? Destination);
 
-    app.UseRateLimiter();
-
-    app.MapHealthChecks("/health");
-
-    app.MapGet(
-        "/health/live",
-        () => Results.Ok(new { status = "ok" }));
-
-    app.MapPrometheusScrapingEndpoint();
-
-    // ------------------------------------------------------------
-    // Admin: create short link
-    // ------------------------------------------------------------
-
-    app.MapPost(
-        "/admin/links",
-        async (
-            CreateLinkRequest request,
+        public sealed class RedirectService(
             AppDbContext db,
-            CancellationToken ct) =>
+            HybridCache cache)
         {
-            if (string.IsNullOrWhiteSpace(request.Code) ||
-                request.Code.Length > 64)
-            {
-                return Results.BadRequest(
-                    "Code must contain 1-64 characters.");
-            }
+            private const string PositivePrefix =
+                "redirect:positive:";
 
-            if (!Uri.TryCreate(
-                    request.Destination,
-                    UriKind.Absolute,
-                    out var uri) ||
-                uri.Scheme is not "http" and not "https")
-            {
-                return Results.BadRequest(
-                    "Destination must be HTTP(S).");
-            }
+            private const string NegativePrefix =
+                "redirect:negative:";
 
-            var exists =
-                await db.ShortLinks
-                    .AnyAsync(
-                        x => x.Code == request.Code,
+            private static readonly TimeSpan PositiveTtl =
+                TimeSpan.FromHours(24);
+
+            private static readonly TimeSpan PositiveL1Ttl =
+                TimeSpan.FromMinutes(5);
+
+            private static readonly TimeSpan NegativeTtl =
+                TimeSpan.FromSeconds(15);
+
+            public async Task<RedirectResult> ResolveAsync(
+                string code,
+                CancellationToken ct)
+            {
+                var positiveKey =
+                    PositivePrefix + code;
+
+                var negativeKey =
+                    NegativePrefix + code;
+
+                // ------------------------------------------------
+                // Negative cache
+                // ------------------------------------------------
+
+                var missing =
+                    await cache.GetOrCreateAsync(
+                        negativeKey,
+                        async cancellationToken =>
+                        {
+                            var exists =
+                                await db.ShortLinks
+                                    .AsNoTracking()
+                                    .AnyAsync(
+                                        x =>
+                                            x.Code == code &&
+                                            x.IsActive &&
+                                            (
+                                                x.ExpiresAt == null ||
+                                                x.ExpiresAt >
+                                                DateTimeOffset.UtcNow
+                                            ),
+                                        cancellationToken);
+
+                            return !exists;
+                        },
+                        new HybridCacheEntryOptions
+                        {
+                            Expiration = NegativeTtl,
+                            LocalCacheExpiration =
+                                NegativeTtl
+                        },
                         ct);
 
-            if (exists)
-                return Results.Conflict(
-                    "Code already exists.");
-
-            var entity =
-                new ShortLinkEntity
+                if (missing)
                 {
-                    Code = request.Code,
-                    Destination = request.Destination,
-                    CreatedAt =
-                        DateTimeOffset.UtcNow,
-                    IsActive = true,
-                    ExpiresAt = request.ExpiresAt
-                };
+                    return new RedirectResult(
+                        false,
+                        null);
+                }
 
-            db.ShortLinks.Add(entity);
+                // ------------------------------------------------
+                // Positive cache
+                // ------------------------------------------------
 
-            await db.SaveChangesAsync(ct);
+                var cached =
+                    await cache.GetOrCreateAsync(
+                        positiveKey,
+                        async cancellationToken =>
+                        {
+                            var row =
+                                await db.ShortLinks
+                                    .AsNoTracking()
+                                    .SingleOrDefaultAsync(
+                                        x =>
+                                            x.Code == code &&
+                                            x.IsActive &&
+                                            (
+                                                x.ExpiresAt == null ||
+                                                x.ExpiresAt >
+                                                DateTimeOffset.UtcNow
+                                            ),
+                                        cancellationToken);
 
-            return Results.Created(
-                "/" + entity.Code,
-                new
+                            if (row == null)
+                            {
+                                return new CachedRedirect(
+                                    false,
+                                    null);
+                            }
+
+                            return new CachedRedirect(
+                                true,
+                                row.Destination);
+                        },
+                        new HybridCacheEntryOptions
+                        {
+                            Expiration = PositiveTtl,
+                            LocalCacheExpiration =
+                                PositiveL1Ttl
+                        },
+                        ct);
+
+                if (!cached.Found)
                 {
-                    entity.Code,
-                    entity.Destination,
-                    entity.ExpiresAt
-                });
-        });
+                    await cache.SetAsync(
+                        negativeKey,
+                        true,
+                        new HybridCacheEntryOptions
+                        {
+                            Expiration = NegativeTtl,
+                            LocalCacheExpiration =
+                                NegativeTtl
+                        },
+                        ct);
 
-    // ------------------------------------------------------------
-    // Redirect
-    // ------------------------------------------------------------
+                    return new RedirectResult(
+                        false,
+                        null);
+                }
 
-    app.MapGet(
-        "/{code}",
-        async (
-            string code,
-            RedirectService service,
-            CancellationToken ct) =>
-        {
-            if (string.IsNullOrWhiteSpace(code) ||
-                code.Length > 64)
+                return new RedirectResult(
+                    true,
+                    cached.Destination);
+            }
+        }
+        """
+    )
+
+    # ============================================================
+    # Program.cs
+    # ============================================================
+
+    write_file(
+        "src/ShortLink.Api/Program.cs",
+        r"""
+        using System.Threading.RateLimiting;
+        using Microsoft.EntityFrameworkCore;
+        using OpenTelemetry.Metrics;
+        using OpenTelemetry.Resources;
+        using ShortLink.Api.Data;
+        using ShortLink.Api.Services;
+
+        var builder =
+            WebApplication.CreateBuilder(args);
+
+        var postgres =
+            builder.Configuration
+                .GetConnectionString("Postgres")
+            ?? throw new InvalidOperationException(
+                "Postgres connection string is missing.");
+
+        var redis =
+            builder.Configuration
+                .GetConnectionString("Redis")
+            ?? throw new InvalidOperationException(
+                "Redis connection string is missing.");
+
+        // ========================================================
+        // PostgreSQL
+        // ========================================================
+
+        builder.Services.AddDbContextPool<AppDbContext>(
+            options =>
             {
-                return Results.NotFound();
+                options.UseNpgsql(
+                    postgres,
+                    npgsql =>
+                    {
+                        npgsql.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay:
+                                TimeSpan.FromSeconds(5),
+                            errorCodesToAdd: null);
+                    });
+            });
+
+        // ========================================================
+        // Redis
+        // ========================================================
+
+        builder.Services.AddStackExchangeRedisCache(
+            options =>
+            {
+                options.Configuration = redis;
+                options.InstanceName = "shortlink:";
+            });
+
+        // ========================================================
+        // HybridCache
+        // ========================================================
+
+        builder.Services.AddHybridCache(
+            options =>
+            {
+                options.MaximumKeyLength = 256;
+                options.MaximumPayloadBytes = 16 * 1024;
+            });
+
+        builder.Services.AddScoped<RedirectService>();
+
+        // ========================================================
+        // Rate limiter
+        //
+        // Per-instance token bucket.
+        //
+        // For true global distributed limiting across many
+        // instances, put the limiter at the edge or replace
+        // this with a Redis-backed distributed limiter.
+        // ========================================================
+
+        builder.Services.AddRateLimiter(
+            options =>
+            {
+                options.RejectionStatusCode = 429;
+
+                options.GlobalLimiter =
+                    PartitionedRateLimiter.Create<
+                        HttpContext,
+                        string>(
+                        context =>
+                        {
+                            var key =
+                                context.Connection
+                                    .RemoteIpAddress?
+                                    .ToString()
+                                ?? "unknown";
+
+                            return
+                                RateLimitPartition
+                                    .GetTokenBucketLimiter(
+                                        key,
+                                        _ =>
+                                            new TokenBucketRateLimiterOptions
+                                            {
+                                                TokenLimit = 100,
+
+                                                TokensPerPeriod =
+                                                    100,
+
+                                                ReplenishmentPeriod =
+                                                    TimeSpan.FromSeconds(1),
+
+                                                AutoReplenishment =
+                                                    true,
+
+                                                QueueLimit = 0
+                                            });
+                        });
+            });
+
+        // ========================================================
+        // OpenTelemetry / Prometheus
+        // ========================================================
+
+        builder.Services
+            .AddOpenTelemetry()
+            .ConfigureResource(
+                resource =>
+                    resource.AddService(
+                        "shortlink-api"))
+            .WithMetrics(
+                metrics =>
+                {
+                    metrics
+                        .AddAspNetCoreInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddPrometheusExporter();
+                });
+
+        // ========================================================
+        // Health checks
+        // ========================================================
+
+        builder.Services
+            .AddHealthChecks()
+            .AddNpgSql(postgres)
+            .AddRedis(redis);
+
+        var app =
+            builder.Build();
+
+        app.UseRateLimiter();
+
+        // ========================================================
+        // Health
+        // ========================================================
+
+        app.MapHealthChecks("/health");
+
+        app.MapGet(
+            "/health/live",
+            () =>
+                Results.Ok(
+                    new
+                    {
+                        status = "ok"
+                    }));
+
+        // ========================================================
+        // Metrics
+        // ========================================================
+
+        app.MapPrometheusScrapingEndpoint();
+
+        // ========================================================
+        // Create short link
+        // ========================================================
+
+        app.MapPost(
+            "/admin/links",
+            async (
+                CreateLinkRequest request,
+                AppDbContext db,
+                CancellationToken ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(
+                        request.Code) ||
+                    request.Code.Length > 64)
+                {
+                    return Results.BadRequest(
+                        "Code must contain 1-64 characters.");
+                }
+
+                if (!Uri.TryCreate(
+                        request.Destination,
+                        UriKind.Absolute,
+                        out var uri) ||
+                    uri.Scheme is not "http" and not "https")
+                {
+                    return Results.BadRequest(
+                        "Destination must be HTTP(S).");
+                }
+
+                var exists =
+                    await db.ShortLinks
+                        .AnyAsync(
+                            x =>
+                                x.Code ==
+                                request.Code,
+                            ct);
+
+                if (exists)
+                {
+                    return Results.Conflict(
+                        "Code already exists.");
+                }
+
+                var entity =
+                    new ShortLinkEntity
+                    {
+                        Code =
+                            request.Code,
+
+                        Destination =
+                            request.Destination,
+
+                        CreatedAt =
+                            DateTimeOffset.UtcNow,
+
+                        IsActive =
+                            true,
+
+                        ExpiresAt =
+                            request.ExpiresAt
+                    };
+
+                db.ShortLinks.Add(entity);
+
+                await db.SaveChangesAsync(ct);
+
+                return Results.Created(
+                    "/" + entity.Code,
+                    new
+                    {
+                        entity.Code,
+                        entity.Destination,
+                        entity.ExpiresAt
+                    });
+            });
+
+        // ========================================================
+        // Redirect
+        // ========================================================
+
+        app.MapGet(
+            "/{code}",
+            async (
+                string code,
+                RedirectService service,
+                CancellationToken ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(code) ||
+                    code.Length > 64)
+                {
+                    return Results.NotFound();
+                }
+
+                var result =
+                    await service.ResolveAsync(
+                        code,
+                        ct);
+
+                if (!result.Found)
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.Redirect(
+                    result.Destination!);
+            });
+
+        app.Run();
+
+        public sealed record CreateLinkRequest(
+            string Code,
+            string Destination,
+            DateTimeOffset? ExpiresAt);
+        """
+    )
+
+    # ============================================================
+    # Tests
+    # ============================================================
+
+    write_file(
+        "tests/ShortLink.Tests/ShortLink.Tests.csproj",
+        r"""
+        <Project Sdk="Microsoft.NET.Sdk">
+
+          <PropertyGroup>
+            <TargetFramework>net10.0</TargetFramework>
+            <IsPackable>false</IsPackable>
+            <Nullable>enable</Nullable>
+            <ImplicitUsings>enable</ImplicitUsings>
+          </PropertyGroup>
+
+          <ItemGroup>
+
+            <PackageReference
+              Include="Microsoft.NET.Test.Sdk"
+              Version="18.0.0" />
+
+            <PackageReference
+              Include="xunit"
+              Version="2.9.3" />
+
+            <PackageReference
+              Include="xunit.runner.visualstudio"
+              Version="3.1.4"
+              PrivateAssets="all" />
+
+          </ItemGroup>
+
+          <ItemGroup>
+
+            <ProjectReference
+              Include="../../src/ShortLink.Api/ShortLink.Api.csproj" />
+
+          </ItemGroup>
+
+        </Project>
+        """
+    )
+
+    write_file(
+        "tests/ShortLink.Tests/BasicTests.cs",
+        r"""
+        using Xunit;
+
+        namespace ShortLink.Tests;
+
+        public sealed class BasicTests
+        {
+            [Fact]
+            public void Code_length_is_valid()
+            {
+                var code =
+                    new string('a', 64);
+
+                Assert.Equal(
+                    64,
+                    code.Length);
             }
 
-            var result =
-                await service.ResolveAsync(
-                    code,
-                    ct);
+            [Fact]
+            public void Http_destination_is_valid()
+            {
+                var valid =
+                    Uri.TryCreate(
+                        "https://example.com",
+                        UriKind.Absolute,
+                        out var uri);
 
-            if (!result.Found)
-                return Results.NotFound();
+                Assert.True(valid);
+                Assert.NotNull(uri);
 
-            return Results.Redirect(
-                result.Destination!);
-        });
+                Assert.Equal(
+                    "https",
+                    uri!.Scheme);
+            }
 
-    app.Run();
+            [Fact]
+            public void Positive_cache_ttl_is_24_hours()
+            {
+                var ttl =
+                    TimeSpan.FromHours(24);
 
-    public sealed record CreateLinkRequest(
-        string Code,
-        string Destination,
-        DateTimeOffset? ExpiresAt);
-    """)
+                Assert.Equal(
+                    24,
+                    ttl.TotalHours);
+            }
 
-    # ================================================================
-    # Tests
-    # ================================================================
+            [Fact]
+            public void Negative_cache_ttl_is_15_seconds()
+            {
+                var ttl =
+                    TimeSpan.FromSeconds(15);
 
-    file("tests/ShortLink.Tests/ShortLink.Tests.csproj", r"""
-    <Project Sdk="Microsoft.NET.Sdk">
+                Assert.Equal(
+                    15,
+                    ttl.TotalSeconds);
+            }
+        }
+        """
+    )
 
-      <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <IsPackable>false</IsPackable>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-      </PropertyGroup>
+    # ============================================================
+    # BenchmarkDotNet
+    # ============================================================
 
-      <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk"
-                          Version="18.0.0" />
+    write_file(
+        "tests/ShortLink.Benchmarks/ShortLink.Benchmarks.csproj",
+        r"""
+        <Project Sdk="Microsoft.NET.Sdk">
 
-        <PackageReference Include="xunit"
-                          Version="2.9.3" />
+          <PropertyGroup>
+            <OutputType>Exe</OutputType>
+            <TargetFramework>net10.0</TargetFramework>
+            <Nullable>enable</Nullable>
+            <ImplicitUsings>enable</ImplicitUsings>
+          </PropertyGroup>
 
-        <PackageReference Include="xunit.runner.visualstudio"
-                          Version="3.1.4"
-                          PrivateAssets="all" />
-      </ItemGroup>
+          <ItemGroup>
 
-      <ItemGroup>
-        <ProjectReference
-          Include="../../src/ShortLink.Api/ShortLink.Api.csproj" />
-      </ItemGroup>
+            <PackageReference
+              Include="BenchmarkDotNet"
+              Version="0.15.6" />
 
-    </Project>
-    """)
+          </ItemGroup>
 
-    file("tests/ShortLink.Tests/BasicTests.cs", r"""
-    using Xunit;
+        </Project>
+        """
+    )
 
-    namespace ShortLink.Tests;
+    write_file(
+        "tests/ShortLink.Benchmarks/Program.cs",
+        r"""
+        using BenchmarkDotNet.Attributes;
+        using BenchmarkDotNet.Running;
 
-    public sealed class BasicTests
-    {
-        [Fact]
-        public void Code_length_is_valid()
+        BenchmarkRunner.Run<RedirectBenchmark>();
+
+        public class RedirectBenchmark
         {
-            var code = new string('a', 64);
+            private string _code = null!;
 
-            Assert.Equal(64, code.Length);
+            [GlobalSetup]
+            public void Setup()
+            {
+                _code =
+                    "aZ91kLm2Pq7X";
+            }
+
+            [Benchmark]
+            public int CodeLength()
+            {
+                return _code.Length;
+            }
+
+            [Benchmark]
+            public bool CodeIsValid()
+            {
+                return
+                    !string.IsNullOrWhiteSpace(
+                        _code)
+                    &&
+                    _code.Length <= 64;
+            }
         }
+        """
+    )
 
-        [Fact]
-        public void Http_destination_is_valid()
-        {
-            var valid =
-                Uri.TryCreate(
-                    "https://example.com",
-                    UriKind.Absolute,
-                    out var uri);
+    # ============================================================
+    # k6 load test
+    # ============================================================
 
-            Assert.True(valid);
-            Assert.NotNull(uri);
-            Assert.Equal("https", uri!.Scheme);
+    write_file(
+        "loadtest/redirect.js",
+        r"""
+        import http from "k6/http";
+        import { check } from "k6";
+
+        export const options = {
+          scenarios: {
+
+            redirects: {
+
+              executor:
+                "ramping-arrival-rate",
+
+              startRate:
+                100,
+
+              timeUnit:
+                "1s",
+
+              preAllocatedVUs:
+                100,
+
+              maxVUs:
+                2000,
+
+              stages: [
+                {
+                  target: 1000,
+                  duration: "30s"
+                },
+                {
+                  target: 5000,
+                  duration: "1m"
+                },
+                {
+                  target: 10000,
+                  duration: "1m"
+                },
+                {
+                  target: 10000,
+                  duration: "2m"
+                },
+                {
+                  target: 0,
+                  duration: "30s"
+                }
+              ]
+            }
+          },
+
+          thresholds: {
+            http_req_failed:
+              ["rate<0.01"],
+
+            http_req_duration: [
+              "p(95)<100",
+              "p(99)<250"
+            ]
+          }
+        };
+
+        export default function () {
+
+          const response =
+            http.get(
+              "http://localhost:8080/google",
+              {
+                redirects: 0
+              }
+            );
+
+          check(
+            response,
+            {
+              "status is 302":
+                r => r.status === 302
+            }
+          );
         }
+        """
+    )
 
-        [Fact]
-        public void Positive_cache_ttl_is_24_hours()
-        {
-            var ttl = TimeSpan.FromHours(24);
+    # ============================================================
+    # Dockerfile
+    # ============================================================
 
-            Assert.Equal(24, ttl.TotalHours);
-        }
+    write_file(
+        "src/ShortLink.Api/Dockerfile",
+        r"""
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
-        [Fact]
-        public void Negative_cache_ttl_is_15_seconds()
-        {
-            var ttl = TimeSpan.FromSeconds(15);
+        WORKDIR /src
 
-            Assert.Equal(15, ttl.TotalSeconds);
-        }
-    }
-    """)
+        COPY src/ShortLink.Api/ShortLink.Api.csproj \
+             src/ShortLink.Api/
 
-    # ================================================================
-    # Benchmark
-    # ================================================================
+        RUN dotnet restore \
+            src/ShortLink.Api/ShortLink.Api.csproj
 
-    file("tests/ShortLink.Benchmarks/ShortLink.Benchmarks.csproj", r"""
-    <Project Sdk="Microsoft.NET.Sdk">
+        COPY . .
 
-      <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-      </PropertyGroup>
+        WORKDIR /src/src/ShortLink.Api
 
-      <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet"
-                          Version="0.15.6" />
-      </ItemGroup>
+        RUN dotnet publish \
+            ShortLink.Api.csproj \
+            -c Release \
+            -o /app/publish \
+            /p:UseAppHost=false
 
-    </Project>
-    """)
+        FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
-    file("tests/ShortLink.Benchmarks/Program.cs", r"""
-    using BenchmarkDotNet.Attributes;
-    using BenchmarkDotNet.Running;
+        WORKDIR /app
 
-    BenchmarkRunner.Run<RedirectBenchmark>();
+        ENV ASPNETCORE_URLS=http://+:8080
 
-    public class RedirectBenchmark
-    {
-        private string _code = null!;
+        EXPOSE 8080
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _code = "aZ91kLm2Pq7X";
-        }
+        COPY --from=build \
+             /app/publish .
 
-        [Benchmark]
-        public int CodeLength()
-        {
-            return _code.Length;
-        }
+        USER $APP_UID
 
-        [Benchmark]
-        public bool CodeIsValid()
-        {
-            return
-                !string.IsNullOrWhiteSpace(_code) &&
-                _code.Length <= 64;
-        }
-    }
-    """)
-
-    # ================================================================
-    # k6
-    # ================================================================
-
-    file("loadtest/redirect.js", r"""
-    import http from "k6/http";
-    import { check } from "k6";
-
-    export const options = {
-      scenarios: {
-        redirects: {
-          executor: "ramping-arrival-rate",
-
-          startRate: 100,
-
-          timeUnit: "1s",
-
-          preAllocatedVUs: 100,
-
-          maxVUs: 2000,
-
-          stages: [
-            { target: 1000, duration: "30s" },
-            { target: 5000, duration: "1m" },
-            { target: 10000, duration: "1m" },
-            { target: 10000, duration: "2m" },
-            { target: 0, duration: "30s" }
-          ]
-        }
-      },
-
-      thresholds: {
-        http_req_failed: ["rate<0.01"],
-        http_req_duration: [
-          "p(95)<100",
-          "p(99)<250"
+        ENTRYPOINT [
+          "dotnet",
+          "ShortLink.Api.dll"
         ]
-      }
-    };
+        """
+    )
 
-    export default function () {
-      const response =
-        http.get(
-          "http://localhost:8080/google",
-          { redirects: 0 }
-        );
+    # ============================================================
+    # Docker Compose
+    # ============================================================
 
-      check(response, {
-        "status is 302":
-          r => r.status === 302
-      });
-    }
-    """)
+    write_file(
+        "docker-compose.yml",
+        r"""
+        services:
 
-    # ================================================================
-    # Docker
-    # ================================================================
+          api:
 
-    file("src/ShortLink.Api/Dockerfile", r"""
-    FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+            build:
+              context: .
+              dockerfile:
+                src/ShortLink.Api/Dockerfile
 
-    WORKDIR /src
+            ports:
+              - "8080:8080"
 
-    COPY src/ShortLink.Api/ShortLink.Api.csproj \
-         src/ShortLink.Api/
+            environment:
 
-    RUN dotnet restore \
-        src/ShortLink.Api/ShortLink.Api.csproj
+              ASPNETCORE_ENVIRONMENT:
+                Development
 
-    COPY . .
+              ConnectionStrings__Postgres: >-
+                Host=postgres;
+                Port=5432;
+                Database=shortlink;
+                Username=shortlink;
+                Password=shortlink
 
-    WORKDIR /src/src/ShortLink.Api
+              ConnectionStrings__Redis:
+                redis:6379
 
-    RUN dotnet publish \
-        ShortLink.Api.csproj \
-        -c Release \
-        -o /app/publish \
-        /p:UseAppHost=false
+            depends_on:
 
-    FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+              postgres:
+                condition:
+                  service_healthy
 
-    WORKDIR /app
+              redis:
+                condition:
+                  service_healthy
 
-    ENV ASPNETCORE_URLS=http://+:8080
 
-    EXPOSE 8080
-
-    COPY --from=build /app/publish .
-
-    USER $APP_UID
-
-    ENTRYPOINT ["dotnet", "ShortLink.Api.dll"]
-    """)
-
-    file("docker-compose.yml", r"""
-    services:
-
-      api:
-        build:
-          context: .
-          dockerfile: src/ShortLink.Api/Dockerfile
-
-        ports:
-          - "8080:8080"
-
-        environment:
-          ASPNETCORE_ENVIRONMENT: Development
-
-          ConnectionStrings__Postgres: >-
-            Host=postgres;
-            Port=5432;
-            Database=shortlink;
-            Username=shortlink;
-            Password=shortlink
-
-          ConnectionStrings__Redis: redis:6379
-
-        depends_on:
           postgres:
-            condition: service_healthy
+
+            image:
+              postgres:18-alpine
+
+            environment:
+
+              POSTGRES_DB:
+                shortlink
+
+              POSTGRES_USER:
+                shortlink
+
+              POSTGRES_PASSWORD:
+                shortlink
+
+            ports:
+              - "5432:5432"
+
+            volumes:
+
+              - postgres_data:
+                  /var/lib/postgresql/data
+
+            healthcheck:
+
+              test:
+                [
+                  "CMD-SHELL",
+                  "pg_isready -U shortlink -d shortlink"
+                ]
+
+              interval:
+                5s
+
+              timeout:
+                5s
+
+              retries:
+                10
+
 
           redis:
-            condition: service_healthy
+
+            image:
+              redis:8-alpine
+
+            ports:
+              - "6379:6379"
+
+            command:
+
+              - redis-server
+              - --appendonly
+              - "yes"
+
+            volumes:
+
+              - redis_data:
+                  /data
+
+            healthcheck:
+
+              test:
+                [
+                  "CMD",
+                  "redis-cli",
+                  "ping"
+                ]
+
+              interval:
+                5s
+
+              timeout:
+                5s
+
+              retries:
+                10
 
 
-      postgres:
-        image: postgres:18-alpine
+          prometheus:
 
-        environment:
-          POSTGRES_DB: shortlink
-          POSTGRES_USER: shortlink
-          POSTGRES_PASSWORD: shortlink
+            image:
+              prom/prometheus:latest
 
-        ports:
-          - "5432:5432"
+            ports:
+              - "9090:9090"
+
+            volumes:
+
+              - ./prometheus.yml:
+                  /etc/prometheus/prometheus.yml:ro
+
+            depends_on:
+
+              - api
+
+
+          grafana:
+
+            image:
+              grafana/grafana:latest
+
+            ports:
+              - "3000:3000"
+
+            environment:
+
+              GF_SECURITY_ADMIN_USER:
+                admin
+
+              GF_SECURITY_ADMIN_PASSWORD:
+                admin
+
+            volumes:
+
+              - grafana_data:
+                  /var/lib/grafana
+
+              - ./monitoring/grafana/provisioning:
+                  /etc/grafana/provisioning
+
+            depends_on:
+
+              - prometheus
+
 
         volumes:
-          - postgres_data:/var/lib/postgresql/data
 
-        healthcheck:
-          test:
-            [
-              "CMD-SHELL",
-              "pg_isready -U shortlink -d shortlink"
-            ]
+          postgres_data:
 
-          interval: 5s
-          timeout: 5s
-          retries: 10
+          redis_data:
 
+          grafana_data:
+        """
+    )
 
-      redis:
-        image: redis:8-alpine
-
-        ports:
-          - "6379:6379"
-
-        command:
-          - redis-server
-          - --appendonly
-          - "yes"
-
-        volumes:
-          - redis_data:/data
-
-        healthcheck:
-          test:
-            [
-              "CMD",
-              "redis-cli",
-              "ping"
-            ]
-
-          interval: 5s
-          timeout: 5s
-          retries: 10
-
-
-      prometheus:
-        image: prom/prometheus:latest
-
-        ports:
-          - "9090:9090"
-
-        volumes:
-          - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-
-        depends_on:
-          - api
-
-
-      grafana:
-        image: grafana/grafana:latest
-
-        ports:
-          - "3000:3000"
-
-        environment:
-          GF_SECURITY_ADMIN_USER: admin
-          GF_SECURITY_ADMIN_PASSWORD: admin
-
-        volumes:
-          - grafana_data:/var/lib/grafana
-          - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-
-        depends_on:
-          - prometheus
-
-
-    volumes:
-      postgres_data:
-      redis_data:
-      grafana_data:
-    """)
-
-    # ================================================================
+    # ============================================================
     # Prometheus
-    # ================================================================
+    # ============================================================
 
-    file("prometheus.yml", r"""
-    global:
-      scrape_interval: 5s
+    write_file(
+        "prometheus.yml",
+        r"""
+        global:
 
-    scrape_configs:
-      - job_name: shortlink-api
+          scrape_interval:
+            5s
 
-        metrics_path: /metrics
+        scrape_configs:
 
-        static_configs:
-          - targets:
-              - api:8080
-    """)
+          - job_name:
+              shortlink-api
 
-    file(
+            metrics_path:
+              /metrics
+
+            static_configs:
+
+              - targets:
+                  - api:8080
+        """
+    )
+
+    # ============================================================
+    # Grafana datasource
+    # ============================================================
+
+    write_file(
         "monitoring/grafana/provisioning/datasources/prometheus.yml",
         r"""
         apiVersion: 1
 
         datasources:
-          - name: Prometheus
-            type: prometheus
-            access: proxy
-            url: http://prometheus:9090
-            isDefault: true
+
+          - name:
+              Prometheus
+
+            type:
+              prometheus
+
+            access:
+              proxy
+
+            url:
+              http://prometheus:9090
+
+            isDefault:
+              true
         """
     )
 
-    # ================================================================
-    # GitHub CI
-    # ================================================================
+    # ============================================================
+    # CI workflow
+    # ============================================================
 
-    file(".github/workflows/ci.yml", r"""
-    name: ShortLink CI
+    write_file(
+        ".github/workflows/ci.yml",
+        r"""
+        name: ShortLink CI
 
-    on:
-      push:
-        branches:
-          - main
+        on:
+
+          push:
+            branches:
+              - main
+
+          pull_request:
+
+        permissions:
+          contents: read
+
+        jobs:
+
+          build-test:
+
+            runs-on:
+              ubuntu-latest
+
+            steps:
+
+              - name:
+                  Checkout
+
+                uses:
+                  actions/checkout@v4
+
+              - name:
+                  Setup .NET
+
+                uses:
+                  actions/setup-dotnet@v4
+
+                with:
+                  dotnet-version:
+                    "10.x"
+
+              - name:
+                  Restore
+
+                run:
+                  dotnet restore
+
+              - name:
+                  Build
+
+                run:
+                  dotnet build
+                  --no-restore
+                  -c Release
 
-      pull_request:
+              - name:
+                  Test
 
-    permissions:
-      contents: read
+                run:
+                  dotnet test
+                  --no-build
+                  -c Release
 
-    jobs:
-      build-test:
+              - name:
+                  Docker build
 
-        runs-on: ubuntu-latest
-
-        steps:
+                run: |
+                  docker build \
+                    -f src/ShortLink.Api/Dockerfile \
+                    -t shortlink-api:${{ github.sha }} \
+                    .
+        """
+    )
 
-          - name: Checkout
-            uses: actions/checkout@v4
+    # ============================================================
+    # README
+    # ============================================================
 
-          - name: Setup .NET
-            uses: actions/setup-dotnet@v4
-            with:
-              dotnet-version: "10.x"
-
-          - name: Restore
-            run: dotnet restore
-
-          - name: Build
-            run: dotnet build --no-restore -c Release
-
-          - name: Test
-            run: dotnet test --no-build -c Release
-
-          - name: Docker build
-            run: |
-              docker build \
-                -f src/ShortLink.Api/Dockerfile \
-                -t shortlink-api:${{ github.sha }} \
-                .
-    """)
+    write_file(
+        "README.md",
+        r"""
+        # ShortLink
 
-    # ================================================================
-    # GitHub generator workflow
-    # ================================================================
+        High-performance URL redirect service.
 
-    file(".github/workflows/generate.yml", r"""
-    name: Generate ShortLink
-
-    on:
-      workflow_dispatch:
-
-    permissions:
-      contents: write
-
-    jobs:
-      generate:
-
-        runs-on: ubuntu-latest
-
-        steps:
-
-          - name: Checkout
-            uses: actions/checkout@v4
-
-          - name: Setup Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: "3.x"
-
-          - name: Run generator
-            run: python create_shortlink.py
-
-          - name: Setup .NET
-            uses: actions/setup-dotnet@v4
-            with:
-              dotnet-version: "10.x"
-
-          - name: Install EF tool
-            run: |
-              dotnet tool install --global dotnet-ef --version 10.0.0
-
-          - name: Generate EF migration
-            working-directory: ShortLink
-            run: |
-              dotnet restore
-              dotnet ef migrations add InitialCreate \
-                --project src/ShortLink.Api \
-                --startup-project src/ShortLink.Api \
-                --output-dir Data/Migrations
-
-          - name: Validate
-            working-directory: ShortLink
-            run: |
-              dotnet build -c Release
-              dotnet test -c Release --no-restore
-
-          - name: Create ZIP
-            working-directory: ShortLink
-            run: |
-              zip -r ../ShortLink.zip . \
-                -x "**/bin/*" \
-                -x "**/obj/*"
-
-          - name: Replace generated repository
-            run: |
-              cp -R ShortLink/. .
-              rm -rf ShortLink
-              rm -f create_shortlink.py
-
-          - name: Commit generated project
-            run: |
-              git config user.name "github-actions[bot]"
-              git config user.email \
-                "41898282+github-actions[bot]@users.noreply.github.com"
-
-              git add .
-
-              if git diff --cached --quiet; then
-                echo "No generated changes."
-              else
-                git commit -m "Generate ShortLink project"
-                git push
-              fi
-
-          - name: Upload ZIP
-            uses: actions/upload-artifact@v4
-            with:
-              name: ShortLink
-              path: ShortLink.zip
-    """)
-
-    # ================================================================
-    # Documentation
-    # ================================================================
-
-    file("README.md", r"""
-    # ShortLink
-
-    High-performance URL redirect service.
-
-    ## Architecture
-
-    ```text
-                       GET /code
-                           |
-                           v
-                   Rate Limiter
-                           |
-                           v
-                      HybridCache
-                      /          \
-                    L1            L2
-                 Memory          Redis
-                    \              /
-                     \            /
-                         MISS
-                           |
-                           v
-                      PostgreSQL
-                       /       \
-                    found     missing
-                      |          |
-                    24h        15s
-                      |          |
-                    302        404
-    ```
-
-    ## Components
+        ## Architecture
 
-    - ASP.NET Core
-    - .NET 10
-    - EF Core
-    - PostgreSQL
-    - Redis
-    - HybridCache
-    - OpenTelemetry
-    - Prometheus
-    - Grafana
-    - xUnit
-    - BenchmarkDotNet
-    - k6
-    - Docker
-    - GitHub Actions
-
-    ## Cache policy
-
-    Positive entries:
-
-    - Redis: 24 hours
-    - L1 memory: 5 minutes
-
-    Negative entries:
-
-    - Redis: 15 seconds
-    - L1 memory: 15 seconds
-
-    ## Local development
-
-    ```bash
-    docker compose up --build
-    ```
-
-    API:
-
-    http://localhost:8080
-
-    Prometheus:
-
-    http://localhost:9090
-
-    Grafana:
-
-    http://localhost:3000
-
-    Grafana credentials:
-
-    ```text
-    admin / admin
-    ```
-
-    ## Create a link
-
-    ```bash
-    curl -X POST http://localhost:8080/admin/links \
-      -H "Content-Type: application/json" \
-      -d '{"code":"google","destination":"https://www.google.com"}'
-    ```
-
-    ## Test redirect
-
-    ```bash
-    curl -i http://localhost:8080/google
-    ```
-
-    ## Tests
-
-    ```bash
-    dotnet test
-    ```
-
-    ## Benchmark
-
-    ```bash
-    dotnet run \
-      --project tests/ShortLink.Benchmarks \
-      -c Release
-    ```
-
-    ## k6
-
-    ```bash
-    k6 run loadtest/redirect.js
-    ```
-
-    ## EF migrations
-
-    Migrations are generated by the GitHub Actions generator workflow.
-
-    For local development:
-
-    ```bash
-    dotnet tool install --global dotnet-ef --version 10.0.0
-
-    dotnet ef database update \
-      --project src/ShortLink.Api \
-      --startup-project src/ShortLink.Api
-    ```
-
-    ## Production
-
-    The included Docker Compose environment is for local development.
-
-    Production should use:
-
-    - PostgreSQL HA
-    - Redis Cluster
-    - distributed/global rate limiting
-    - TLS
-    - managed secrets
-    - database backups
-    - replication monitoring
-    - alerting
-    - centralized logs
-    - distributed tracing
-
-    Do not expose `/admin/links` publicly without authentication and authorization.
-    """)
-
-    file(".gitignore", r"""
-    bin/
-    obj/
-    .vs/
-    .idea/
-    TestResults/
-    BenchmarkDotNet.Artifacts/
-    *.user
-    *.suo
-    *.zip
-    """)
-
-    file(".dockerignore", r"""
-    .git
-    .github
-    **/bin
-    **/obj
-    **/TestResults
-    **/BenchmarkDotNet.Artifacts
-    *.zip
-    """)
-
-    file(".editorconfig", r"""
-    root = true
-
-    [*]
-    charset = utf-8
-    end_of_line = lf
-    insert_final_newline = true
-    indent_style = space
-    indent_size = 4
-    """)
-
-    print()
-    print("Project generated in:", ROOT.resolve())
-    print()
-    print("The GitHub workflow will generate the EF migration.")
-    print()
-    print("Local Docker command:")
-    print("  cd ShortLink")
-    print("  docker compose up --build")
-    print()
-
-    # Create ZIP when the script is run locally.
-    # GitHub Actions creates its own ZIP after migrations.
+        ```text
+                         GET /code
+                             |
+                             v
+                       Rate Limiter
+                             |
+                             v
+                         HybridCache
+                        /          \
+                      L1            L2
+                   Memory          Redis
+                      \              /
+                       \            /
+                           MISS
+                             |
+                             v
+                         PostgreSQL
+                          /       \
+                       found     missing
+                         |          |
+                       24h        15s
+                         |          |
+                       302        404
+        ```
+
+        ## Components
+
+        - ASP.NET Core
+        - .NET 10
+        - EF Core
+        - PostgreSQL
+        - Redis
+        - HybridCache
+        - OpenTelemetry
+        - Prometheus
+        - Grafana
+        - xUnit
+        - BenchmarkDotNet
+        - k6
+        - Docker
+        - GitHub Actions
+
+        ## Cache policy
+
+        Positive:
+
+        - Redis: 24 hours
+        - L1 memory: 5 minutes
+
+        Negative:
+
+        - Redis: 15 seconds
+        - L1 memory: 15 seconds
+
+        ## Run locally
+
+        ```bash
+        docker compose up --build
+        ```
+
+        API:
+
+        http://localhost:8080
+
+        Prometheus:
+
+        http://localhost:9090
+
+        Grafana:
+
+        http://localhost:3000
+
+        Grafana:
+
+        admin / admin
+
+        ## Create a short link
+
+        ```bash
+        curl -X POST \
+          http://localhost:8080/admin/links \
+          -H "Content-Type: application/json" \
+          -d '{"code":"google","destination":"https://www.google.com"}'
+        ```
+
+        ## Test redirect
+
+        ```bash
+        curl -i \
+          http://localhost:8080/google
+        ```
+
+        ## Tests
+
+        ```bash
+        dotnet test
+        ```
+
+        ## Benchmark
+
+        ```bash
+        dotnet run \
+          --project tests/ShortLink.Benchmarks \
+          -c Release
+        ```
+
+        ## k6
+
+        ```bash
+        k6 run loadtest/redirect.js
+        ```
+
+        ## Production
+
+        The Docker Compose environment is intended for local development.
+
+        Production should use:
+
+        - PostgreSQL HA
+        - Redis Cluster
+        - distributed/global rate limiting
+        - TLS
+        - managed secrets
+        - database backups
+        - replication monitoring
+        - centralized logs
+        - distributed tracing
+
+        Protect `/admin/links` with authentication and authorization before
+        exposing it to untrusted clients.
+        """
+    )
+
+    # ============================================================
+    # Git configuration
+    # ============================================================
+
+    write_file(
+        ".gitignore",
+        r"""
+        bin/
+        obj/
+        .vs/
+        .idea/
+        TestResults/
+        BenchmarkDotNet.Artifacts/
+        *.user
+        *.suo
+        *.zip
+        """
+    )
+
+    write_file(
+        ".dockerignore",
+        r"""
+        .git
+        .github
+        **/bin
+        **/obj
+        **/TestResults
+        **/BenchmarkDotNet.Artifacts
+        *.zip
+        """
+    )
+
+    write_file(
+        ".editorconfig",
+        r"""
+        root = true
+
+        [*]
+        charset = utf-8
+        end_of_line = lf
+        insert_final_newline = true
+        indent_style = space
+        indent_size = 4
+        """
+    )
+
+    # ============================================================
+    # Create ZIP
+    # ============================================================
+
     with zipfile.ZipFile(
         ZIP,
         "w",
         compression=zipfile.ZIP_DEFLATED
     ) as archive:
-        for p in ROOT.rglob("*"):
-            if p.is_file():
-                archive.write(p, p.as_posix())
 
-    print("ZIP:", ZIP.resolve())
+        for path in ROOT.rglob("*"):
+
+            if path.is_file():
+
+                archive.write(
+                    path,
+                    path.relative_to(ROOT)
+                )
+
+    print()
+    print("=" * 60)
+    print("ShortLink project generated successfully.")
+    print("=" * 60)
+    print()
+    print(f"Project: {ROOT.resolve()}")
+    print(f"ZIP:     {ZIP.resolve()}")
+    print()
+    print("The GitHub workflow will additionally:")
+    print("  1. Generate the EF Core migration")
+    print("  2. Restore NuGet packages")
+    print("  3. Build the solution")
+    print("  4. Run tests")
+    print("  5. Create ShortLink.zip")
+    print("  6. Commit the generated source")
+    print()
 
 
 if __name__ == "__main__":
