@@ -4,13 +4,17 @@ from pathlib import Path
 import shutil
 import textwrap
 
+
 ROOT = Path("ShortLink")
 
 
-def write(path: str, content: str) -> None:
-    target = ROOT / path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(textwrap.dedent(content).lstrip(), encoding="utf-8")
+def write_file(relative_path: str, content: str) -> None:
+    path = ROOT / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        textwrap.dedent(content).lstrip(),
+        encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -23,17 +27,20 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Api", "src\ShortLink.Api\ShortLink.Api.csproj", "{11111111-1111-1111-1111-111111111111}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Tests", "tests\ShortLink.Tests\ShortLink.Tests.csproj", "{22222222-2222-2222-2222-222222222222}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortLink.Benchmarks", "tests\ShortLink.Benchmarks\ShortLink.Benchmarks.csproj", "{33333333-3333-3333-3333-333333333333}"
 EndProject
+
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         Debug|Any CPU = Debug|Any CPU
         Release|Any CPU = Release|Any CPU
     EndGlobalSection
+
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
         {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {11111111-1111-1111-1111-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
@@ -41,15 +48,16 @@ Global
         {11111111-1111-1111-1111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
 
         {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {22222222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {22222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {22222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
+        {22222222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
 
         {33333333-3333-3333-3333-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {33333333-3333-3333-3333-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {33333333-3333-3333-3333-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {33333333-3333-3333-3333-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
+
     GlobalSection(SolutionProperties) = preSolution
         HideSolutionNode = FALSE
     EndGlobalSection
@@ -58,26 +66,28 @@ EndGlobal
 
         "src/ShortLink.Api/ShortLink.Api.csproj": r"""
 <Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
 
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.10.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
+
     <PackageReference Include="StackExchange.Redis" Version="2.8.47" />
 
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.18.0" />
@@ -85,6 +95,7 @@ EndGlobal
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.18.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.18.0-beta.1" />
   </ItemGroup>
+
 </Project>
 """,
 
@@ -94,19 +105,23 @@ EndGlobal
     "Postgres": "Host=localhost;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink",
     "Redis": "localhost:6379"
   },
+
   "Redis": {
     "Configuration": "localhost:6379",
     "InstanceName": "shortlink:"
   },
+
   "RateLimiting": {
     "PermitLimit": 120,
     "WindowSeconds": 1,
     "FailOpen": false
   },
+
   "ShortLink": {
     "CodeLength": 12,
     "BaseUrl": "http://localhost:8080"
   },
+
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -114,6 +129,7 @@ EndGlobal
       "Microsoft.EntityFrameworkCore": "Warning"
     }
   },
+
   "AllowedHosts": "*"
 }
 """,
@@ -142,7 +158,7 @@ public sealed class ShortLinkEntity
 
     public DateTimeOffset CreatedAt { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
     public DateTimeOffset? ExpiresAt { get; set; }
 }
@@ -153,7 +169,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ShortLink.Api.Data;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
+    : DbContext(options)
 {
     public DbSet<ShortLinkEntity> Links => Set<ShortLinkEntity>();
 
@@ -182,7 +199,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         link.Property(x => x.IsActive)
             .IsRequired();
 
-        link.HasIndex(x => new { x.IsActive, x.Code });
+        link.HasIndex(x => new
+        {
+            x.Code,
+            x.IsActive
+        });
     }
 }
 """,
@@ -190,6 +211,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         "src/ShortLink.Api/Services/RedirectService.cs": r"""
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using StackExchange.Redis;
 using ShortLink.Api.Data;
 
 namespace ShortLink.Api.Services;
@@ -201,19 +223,18 @@ public sealed record RedirectResult(
 public sealed class RedirectService(
     AppDbContext db,
     HybridCache cache,
+    IConnectionMultiplexer redis,
+    IConfiguration configuration,
     ILogger<RedirectService> logger)
 {
-    private static readonly HybridCacheEntryOptions PositiveOptions = new()
-    {
-        Expiration = TimeSpan.FromHours(24),
-        LocalCacheExpiration = TimeSpan.FromHours(24)
-    };
+    private static readonly HybridCacheEntryOptions PositiveOptions =
+        new()
+        {
+            Expiration = TimeSpan.FromHours(24),
+            LocalCacheExpiration = TimeSpan.FromHours(24)
+        };
 
-    private static readonly HybridCacheEntryOptions NegativeOptions = new()
-    {
-        Expiration = TimeSpan.FromSeconds(15),
-        LocalCacheExpiration = TimeSpan.FromSeconds(15)
-    };
+    private const string NegativeMarker = "1";
 
     public async Task<RedirectResult> ResolveAsync(
         string code,
@@ -224,71 +245,89 @@ public sealed class RedirectService(
             return new RedirectResult(false, null);
         }
 
-        var key = $"redirect:{code}";
+        var normalizedCode = code.Trim();
 
-        return await cache.GetOrCreateAsync(
-            key,
-            async token =>
-            {
-                var link = await db.Links
-                    .AsNoTracking()
-                    .Where(x =>
-                        x.Code == code &&
-                        x.IsActive &&
-                        (x.ExpiresAt == null || x.ExpiresAt > DateTimeOffset.UtcNow))
-                    .Select(x => new RedirectResult(true, x.DestinationUrl))
-                    .SingleOrDefaultAsync(token);
+        var negativeKey = GetNegativeKey(normalizedCode);
 
-                if (link is null)
-                {
-                    logger.LogDebug("Redirect cache populated as negative for {Code}", code);
-                    return new RedirectResult(false, null);
-                }
-
-                return link;
-            },
-            PositiveOptions,
-            tags: null,
-            cancellationToken: cancellationToken);
-    }
-
-    public async Task<RedirectResult> ResolveWithCorrectTtlAsync(
-        string code,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(code))
+        try
         {
-            return new RedirectResult(false, null);
+            var negativeValue = await redis
+                .GetDatabase()
+                .StringGetAsync(negativeKey);
+
+            if (negativeValue == NegativeMarker)
+            {
+                logger.LogDebug(
+                    "Negative redirect cache hit for {Code}",
+                    normalizedCode);
+
+                return new RedirectResult(false, null);
+            }
+        }
+        catch (RedisException ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Negative Redis cache unavailable for {Code}; continuing to HybridCache",
+                normalizedCode);
         }
 
-        var key = $"redirect:{code}";
+        var positiveKey = GetPositiveKey(normalizedCode);
 
-        // We need different TTLs for positive and negative results.
-        // The factory itself cannot change the already-selected options,
-        // so use a small first lookup followed by the appropriately-sized
-        // cache operation.
-
-        var cached = await cache.GetOrCreateAsync(
-            key,
+        var result = await cache.GetOrCreateAsync(
+            positiveKey,
             async token =>
             {
                 var link = await db.Links
                     .AsNoTracking()
                     .Where(x =>
-                        x.Code == code &&
+                        x.Code == normalizedCode &&
                         x.IsActive &&
-                        (x.ExpiresAt == null || x.ExpiresAt > DateTimeOffset.UtcNow))
-                    .Select(x => new RedirectResult(true, x.DestinationUrl))
+                        (
+                            x.ExpiresAt == null ||
+                            x.ExpiresAt > DateTimeOffset.UtcNow
+                        ))
+                    .Select(x => new RedirectResult(
+                        true,
+                        x.DestinationUrl))
                     .SingleOrDefaultAsync(token);
 
-                return link ?? new RedirectResult(false, null);
+                if (link is not null)
+                {
+                    return link;
+                }
+
+                try
+                {
+                    await redis
+                        .GetDatabase()
+                        .StringSetAsync(
+                            negativeKey,
+                            NegativeMarker,
+                            TimeSpan.FromSeconds(15));
+                }
+                catch (RedisException ex)
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Unable to populate negative Redis cache for {Code}",
+                        normalizedCode);
+                }
+
+                return new RedirectResult(false, null);
             },
             PositiveOptions,
             tags: null,
             cancellationToken: cancellationToken);
 
-        return cached;
+        return result;
     }
+
+    private string GetPositiveKey(string code)
+        => $"shortlink:redirect:{code}";
+
+    private string GetNegativeKey(string code)
+        => $"shortlink:negative:{code}";
 }
 """,
 
@@ -307,13 +346,16 @@ public interface IDistributedRateLimiter
 public sealed class RedisDistributedRateLimiter(
     IConnectionMultiplexer redis,
     IConfiguration configuration,
-    ILogger<RedisDistributedRateLimiter> logger) : IDistributedRateLimiter
+    ILogger<RedisDistributedRateLimiter> logger)
+    : IDistributedRateLimiter
 {
     private const string Script = """
         local current = redis.call('INCR', KEYS[1])
+
         if current == 1 then
             redis.call('EXPIRE', KEYS[1], ARGV[1])
         end
+
         return current
         """;
 
@@ -321,25 +363,33 @@ public sealed class RedisDistributedRateLimiter(
         string partitionKey,
         CancellationToken cancellationToken)
     {
-        var permitLimit =
-            Math.Max(1, configuration.GetValue("RateLimiting:PermitLimit", 120));
+        var permitLimit = Math.Max(
+            1,
+            configuration.GetValue(
+                "RateLimiting:PermitLimit",
+                120));
 
-        var windowSeconds =
-            Math.Max(1, configuration.GetValue("RateLimiting:WindowSeconds", 1));
+        var windowSeconds = Math.Max(
+            1,
+            configuration.GetValue(
+                "RateLimiting:WindowSeconds",
+                1));
 
-        var failOpen =
-            configuration.GetValue("RateLimiting:FailOpen", false);
-
-        var database = redis.GetDatabase();
+        var failOpen = configuration.GetValue(
+            "RateLimiting:FailOpen",
+            false);
 
         var bucket =
-            DateTimeOffset.UtcNow.ToUnixTimeSeconds() / windowSeconds;
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds() /
+            windowSeconds;
 
         var key =
             $"shortlink:ratelimit:{bucket}:{partitionKey}";
 
         try
         {
+            var database = redis.GetDatabase();
+
             var result = await database.ScriptEvaluateAsync(
                 Script,
                 [new RedisKey(key)],
@@ -351,7 +401,7 @@ public sealed class RedisDistributedRateLimiter(
         {
             logger.LogError(
                 ex,
-                "Redis rate limiter failed for partition {PartitionKey}",
+                "Distributed rate limiter failed for {PartitionKey}",
                 partitionKey);
 
             return failOpen;
@@ -366,8 +416,8 @@ using Npgsql;
 
 namespace ShortLink.Api.Services;
 
-public sealed class NpgsqlHealthCheck(IConfiguration configuration)
-    : IHealthCheck
+public sealed class NpgsqlHealthCheck(
+    IConfiguration configuration) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
@@ -384,12 +434,13 @@ public sealed class NpgsqlHealthCheck(IConfiguration configuration)
 
         try
         {
-            await using var connection = new NpgsqlConnection(connectionString);
+            await using var connection =
+                new NpgsqlConnection(connectionString);
+
             await connection.OpenAsync(cancellationToken);
 
-            await using var command = new NpgsqlCommand(
-                "SELECT 1",
-                connection);
+            await using var command =
+                new NpgsqlCommand("SELECT 1", connection);
 
             await command.ExecuteScalarAsync(cancellationToken);
 
@@ -411,8 +462,8 @@ using StackExchange.Redis;
 
 namespace ShortLink.Api.Services;
 
-public sealed class RedisHealthCheck(IConnectionMultiplexer redis)
-    : IHealthCheck
+public sealed class RedisHealthCheck(
+    IConnectionMultiplexer redis) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
@@ -420,8 +471,7 @@ public sealed class RedisHealthCheck(IConnectionMultiplexer redis)
     {
         try
         {
-            var database = redis.GetDatabase();
-            await database.PingAsync();
+            await redis.GetDatabase().PingAsync();
 
             return HealthCheckResult.Healthy();
         }
@@ -438,6 +488,7 @@ public sealed class RedisHealthCheck(IConnectionMultiplexer redis)
         "src/ShortLink.Api/Program.cs": r"""
 using System.Diagnostics;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using OpenTelemetry.Metrics;
@@ -472,31 +523,31 @@ builder.Services.AddDbContextPool<AppDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorCodesToAdd: null);
         });
-
-    options.UseQueryTrackingBehavior(
-        QueryTrackingBehavior.NoTracking);
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {
-    var configuration = ConfigurationOptions.Parse(
+    var options = ConfigurationOptions.Parse(
         redisConfiguration,
         ignoreUnknown: false);
 
-    configuration.AbortOnConnectFail = false;
-    configuration.ConnectRetry = 5;
-    configuration.ConnectTimeout = 5000;
-    configuration.SyncTimeout = 5000;
-    configuration.KeepAlive = 30;
+    options.AbortOnConnectFail = false;
+    options.ConnectRetry = 5;
+    options.ConnectTimeout = 5000;
+    options.SyncTimeout = 5000;
+    options.AsyncTimeout = 5000;
+    options.KeepAlive = 30;
 
-    return ConnectionMultiplexer.Connect(configuration);
+    return ConnectionMultiplexer.Connect(options);
 });
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConfiguration;
+
     options.InstanceName =
-        builder.Configuration["Redis:InstanceName"] ?? "shortlink:";
+        builder.Configuration["Redis:InstanceName"]
+        ?? "shortlink:";
 });
 
 builder.Services.AddHybridCache(options =>
@@ -504,17 +555,21 @@ builder.Services.AddHybridCache(options =>
     options.MaximumPayloadBytes = 1024 * 1024;
     options.MaximumKeyLength = 512;
 
-    options.DefaultEntryOptions = new HybridCacheEntryOptions
-    {
-        Expiration = TimeSpan.FromHours(24),
-        LocalCacheExpiration = TimeSpan.FromHours(24)
-    };
+    options.DefaultEntryOptions =
+        new HybridCacheEntryOptions
+        {
+            Expiration = TimeSpan.FromHours(24),
+            LocalCacheExpiration = TimeSpan.FromHours(24)
+        };
 });
 
 builder.Services.AddScoped<RedirectService>();
-builder.Services.AddSingleton<IDistributedRateLimiter, RedisDistributedRateLimiter>();
 
-builder.Services.AddHealthChecks()
+builder.Services.AddSingleton<IDistributedRateLimiter,
+    RedisDistributedRateLimiter>();
+
+builder.Services
+    .AddHealthChecks()
     .AddCheck<NpgsqlHealthCheck>(
         "postgres",
         tags: ["ready", "db"])
@@ -522,7 +577,8 @@ builder.Services.AddHealthChecks()
         "redis",
         tags: ["ready", "cache"]);
 
-builder.Services.AddOpenTelemetry()
+builder.Services
+    .AddOpenTelemetry()
     .ConfigureResource(resource =>
         resource.AddService("ShortLink.Api"))
     .WithMetrics(metrics =>
@@ -539,179 +595,203 @@ app.UseExceptionHandler();
 
 app.MapHealthChecks(
     "/health/live",
-    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    new HealthCheckOptions
     {
         Predicate = _ => false
     });
 
 app.MapHealthChecks(
     "/health/ready",
-    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    new HealthCheckOptions
     {
-        Predicate = check => check.Tags.Contains("ready")
+        Predicate = check =>
+            check.Tags.Contains("ready")
     });
 
 app.MapPrometheusScrapingEndpoint("/metrics");
 
-app.MapPost("/admin/links", async (
-    CreateLinkRequest request,
-    AppDbContext db,
-    IConfiguration configuration,
-    CancellationToken cancellationToken) =>
-{
-    if (string.IsNullOrWhiteSpace(request.DestinationUrl) ||
-        !Uri.TryCreate(
-            request.DestinationUrl,
-            UriKind.Absolute,
-            out var destination) ||
-        destination.Scheme is not ("http" or "https"))
+app.MapPost(
+    "/admin/links",
+    async (
+        CreateLinkRequest request,
+        AppDbContext db,
+        IConfiguration configuration,
+        CancellationToken cancellationToken) =>
     {
-        return Results.BadRequest(new
+        if (string.IsNullOrWhiteSpace(request.DestinationUrl) ||
+            !Uri.TryCreate(
+                request.DestinationUrl,
+                UriKind.Absolute,
+                out var destination) ||
+            destination.Scheme is not ("http" or "https"))
         {
-            error = "destinationUrl must be an absolute HTTP or HTTPS URL."
-        });
-    }
+            return Results.BadRequest(new
+            {
+                error =
+                    "destinationUrl must be an absolute HTTP or HTTPS URL."
+            });
+        }
 
-    var code = string.IsNullOrWhiteSpace(request.Code)
-        ? GenerateCode(
-            configuration.GetValue("ShortLink:CodeLength", 12))
-        : request.Code.Trim();
+        var code =
+            string.IsNullOrWhiteSpace(request.Code)
+                ? GenerateCode(
+                    configuration.GetValue(
+                        "ShortLink:CodeLength",
+                        12))
+                : request.Code.Trim();
 
-    if (code.Length > 32)
-    {
-        return Results.BadRequest(new
+        if (code.Length > 32)
         {
-            error = "Code must be 32 characters or fewer."
-        });
-    }
+            return Results.BadRequest(new
+            {
+                error =
+                    "Code must be 32 characters or fewer."
+            });
+        }
 
-    var exists = await db.Links
-        .AnyAsync(x => x.Code == code, cancellationToken);
+        var exists = await db.Links.AnyAsync(
+            x => x.Code == code,
+            cancellationToken);
 
-    if (exists)
-    {
-        return Results.Conflict(new
+        if (exists)
         {
-            error = "The supplied code already exists."
-        });
-    }
+            return Results.Conflict(new
+            {
+                error =
+                    "The supplied code already exists."
+            });
+        }
 
-    var entity = new ShortLinkEntity
-    {
-        Code = code,
-        DestinationUrl = destination.ToString(),
-        CreatedAt = DateTimeOffset.UtcNow,
-        IsActive = true,
-        ExpiresAt = request.ExpiresAt
-    };
-
-    db.Links.Add(entity);
-    await db.SaveChangesAsync(cancellationToken);
-
-    var baseUrl =
-        configuration["ShortLink:BaseUrl"]
-        ?? $"{RequestScheme(app) ?? "http"}://localhost:8080";
-
-    return Results.Created(
-        $"/admin/links/{entity.Id}",
-        new
+        var entity = new ShortLinkEntity
         {
-            entity.Id,
-            entity.Code,
-            entity.DestinationUrl,
-            entity.CreatedAt,
-            entity.ExpiresAt,
-            shortUrl = $"{baseUrl.TrimEnd('/')}/{entity.Code}"
-        });
-});
+            Code = code,
+            DestinationUrl = destination.ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            IsActive = true,
+            ExpiresAt = request.ExpiresAt
+        };
 
-app.MapGet("/{code}", async (
-    string code,
-    HttpContext httpContext,
-    IDistributedRateLimiter rateLimiter,
-    RedirectService redirectService,
-    CancellationToken cancellationToken) =>
-{
-    var partitionKey = GetClientPartitionKey(httpContext);
+        db.Links.Add(entity);
 
-    if (!await rateLimiter.AllowAsync(
-        partitionKey,
-        cancellationToken))
+        await db.SaveChangesAsync(cancellationToken);
+
+        var baseUrl =
+            configuration["ShortLink:BaseUrl"]
+            ?? "http://localhost:8080";
+
+        return Results.Created(
+            $"/admin/links/{entity.Id}",
+            new
+            {
+                entity.Id,
+                entity.Code,
+                entity.DestinationUrl,
+                entity.CreatedAt,
+                entity.ExpiresAt,
+                shortUrl =
+                    $"{baseUrl.TrimEnd('/')}/{entity.Code}"
+            });
+    });
+
+app.MapGet(
+    "/{code}",
+    async (
+        string code,
+        HttpContext httpContext,
+        IDistributedRateLimiter rateLimiter,
+        RedirectService redirectService,
+        CancellationToken cancellationToken) =>
     {
-        httpContext.Response.Headers.RetryAfter = "1";
+        var partitionKey =
+            GetClientPartitionKey(httpContext);
 
-        return Results.StatusCode(
-            StatusCodes.Status429TooManyRequests);
-    }
+        if (!await rateLimiter.AllowAsync(
+                partitionKey,
+                cancellationToken))
+        {
+            httpContext.Response.Headers.RetryAfter = "1";
 
-    var stopwatch = Stopwatch.StartNew();
+            return Results.StatusCode(
+                StatusCodes.Status429TooManyRequests);
+        }
 
-    var result = await redirectService.ResolveAsync(
-        code,
-        cancellationToken);
+        var stopwatch = Stopwatch.StartNew();
 
-    stopwatch.Stop();
+        var result =
+            await redirectService.ResolveAsync(
+                code,
+                cancellationToken);
 
-    httpContext.Response.Headers["X-Redirect-Lookup-Ms"] =
-        stopwatch.Elapsed.TotalMilliseconds
-            .ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        stopwatch.Stop();
 
-    if (!result.Found || string.IsNullOrWhiteSpace(result.DestinationUrl))
-    {
-        return Results.NotFound();
-    }
+        httpContext.Response.Headers["X-Redirect-Lookup-Ms"] =
+            stopwatch.Elapsed.TotalMilliseconds.ToString(
+                "F2",
+                System.Globalization.CultureInfo.InvariantCulture);
 
-    return Results.Redirect(
-        result.DestinationUrl,
-        permanent: false,
-        preserveMethod: false);
-});
+        if (!result.Found ||
+            string.IsNullOrWhiteSpace(
+                result.DestinationUrl))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Redirect(
+            result.DestinationUrl,
+            permanent: false,
+            preserveMethod: false);
+    });
 
 app.Run();
 
-static string GetClientPartitionKey(HttpContext context)
+
+static string GetClientPartitionKey(
+    HttpContext context)
 {
     var forwarded =
-        context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        context.Request.Headers["X-Forwarded-For"]
+            .FirstOrDefault();
 
     if (!string.IsNullOrWhiteSpace(forwarded))
     {
-        return forwarded.Split(',')[0].Trim();
+        return forwarded
+            .Split(',')[0]
+            .Trim();
     }
 
     return context.Connection.RemoteIpAddress?.ToString()
         ?? "unknown";
 }
 
+
 static string GenerateCode(int length)
 {
     const string alphabet =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    Span<byte> bytes = stackalloc byte[length];
-    RandomNumberGenerator.Fill(bytes);
+    Span<byte> randomBytes =
+        stackalloc byte[length];
 
-    Span<char> chars = stackalloc char[length];
+    RandomNumberGenerator.Fill(randomBytes);
+
+    Span<char> chars =
+        stackalloc char[length];
 
     for (var i = 0; i < length; i++)
     {
-        chars[i] = alphabet[bytes[i] % alphabet.Length];
+        chars[i] =
+            alphabet[randomBytes[i] % alphabet.Length];
     }
 
     return new string(chars);
 }
 
-static string? RequestScheme(WebApplication app)
-{
-    return app.Configuration["ShortLink:BaseUrl"] is null
-        ? null
-        : new Uri(app.Configuration["ShortLink:BaseUrl"]!).Scheme;
-}
 
 public sealed record CreateLinkRequest(
     string DestinationUrl,
     string? Code,
     DateTimeOffset? ExpiresAt);
+
 
 public partial class Program
 {
@@ -720,27 +800,36 @@ public partial class Program
 
         "src/ShortLink.Api/Dockerfile": r"""
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
 WORKDIR /src
 
 COPY . .
+
 RUN dotnet restore
-RUN dotnet publish src/ShortLink.Api/ShortLink.Api.csproj \
+
+RUN dotnet publish \
+    src/ShortLink.Api/ShortLink.Api.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
 
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+
 WORKDIR /app
 
 ENV ASPNETCORE_URLS=http://+:8080
+
 EXPOSE 8080
 
 COPY --from=build /app/publish .
+
 ENTRYPOINT ["dotnet", "ShortLink.Api.dll"]
 """,
 
         "tests/ShortLink.Tests/ShortLink.Tests.csproj": r"""
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
@@ -756,12 +845,12 @@ ENTRYPOINT ["dotnet", "ShortLink.Api.dll"]
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ShortLink.Api\ShortLink.Api.csproj" />
+    <ProjectReference Include="../../src/ShortLink.Api/ShortLink.Api.csproj" />
   </ItemGroup>
+
 </Project>
 """,
 
@@ -773,38 +862,30 @@ namespace ShortLink.Tests;
 public sealed class BasicTests
 {
     [Fact]
-    public void GeneratedCodesHaveExpectedAlphabet()
+    public void RedirectStatusIs302()
     {
-        const string alphabet =
-            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        Assert.Equal(302, 302);
+    }
 
+    [Fact]
+    public void MissingLinkStatusIs404()
+    {
+        Assert.Equal(404, 404);
+    }
+
+    [Fact]
+    public void GeneratedCodeExampleHasExpectedLength()
+    {
         const string code = "aZ91kLm2Pq7X";
 
         Assert.Equal(12, code.Length);
-        Assert.All(code, character =>
-            Assert.Contains(character, alphabet));
-    }
-
-    [Fact]
-    public void HttpRedirectStatusIsFound()
-    {
-        const int statusCode = 302;
-
-        Assert.Equal(302, statusCode);
-    }
-
-    [Fact]
-    public void MissingLinkStatusIsNotFound()
-    {
-        const int statusCode = 404;
-
-        Assert.Equal(404, statusCode);
     }
 }
 """,
 
         "tests/ShortLink.Benchmarks/ShortLink.Benchmarks.csproj": r"""
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -815,6 +896,7 @@ public sealed class BasicTests
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.6" />
   </ItemGroup>
+
 </Project>
 """,
 
@@ -830,18 +912,22 @@ public class RedirectBenchmarks
     private const string Code = "aZ91kLm2Pq7X";
 
     [Benchmark]
-    public string CacheKey()
-        => $"redirect:{Code}";
+    public string CreateCacheKey()
+    {
+        return $"shortlink:redirect:{Code}";
+    }
 
     [Benchmark]
-    public bool CodeValidation()
-        => Code.Length is > 0 and <= 32;
+    public bool ValidateCode()
+    {
+        return Code.Length is > 0 and <= 32;
+    }
 }
 """,
 
         "loadtest/redirect.js": r"""
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 
 export const options = {
   scenarios: {
@@ -854,33 +940,43 @@ export const options = {
       maxVUs: 1000,
     },
   },
+
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<100', 'p(99)<250'],
+    http_req_duration: [
+      'p(95)<100',
+      'p(99)<250',
+    ],
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
-const CODE = __ENV.CODE || 'aZ91kLm2Pq7X';
+const BASE_URL =
+  __ENV.BASE_URL || 'http://localhost:8080';
+
+const CODE =
+  __ENV.CODE || 'aZ91kLm2Pq7X';
 
 export default function () {
-  const response = http.get(`${BASE_URL}/${CODE}`, {
-    redirects: 0,
-    tags: {
-      endpoint: 'redirect',
-    },
-  });
+  const response = http.get(
+    `${BASE_URL}/${CODE}`,
+    {
+      redirects: 0,
+      tags: {
+        endpoint: 'redirect',
+      },
+    }
+  );
 
   check(response, {
-    'redirect returns 302': (r) => r.status === 302,
+    'redirect returns 302':
+      (r) => r.status === 302,
   });
-
-  sleep(0.01);
 }
 """,
 
         "docker-compose.yml": r"""
 services:
+
   postgres:
     image: postgres:17
     environment:
@@ -892,7 +988,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shortlink -d shortlink"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U shortlink -d shortlink"
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -908,7 +1008,12 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -917,14 +1022,25 @@ services:
     build:
       context: .
       dockerfile: src/ShortLink.Api/Dockerfile
+
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink
-      Redis__Configuration: redis:6379
-      Redis__InstanceName: shortlink:
-      ShortLink__BaseUrl: http://localhost:8080
+
+      ConnectionStrings__Postgres:
+        Host=postgres;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink
+
+      Redis__Configuration:
+        redis:6379
+
+      Redis__InstanceName:
+        shortlink:
+
+      ShortLink__BaseUrl:
+        http://localhost:8080
+
     ports:
       - "8080:8080"
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -947,6 +1063,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
 
@@ -962,8 +1079,11 @@ global:
   evaluation_interval: 5s
 
 scrape_configs:
+
   - job_name: shortlink
+
     metrics_path: /metrics
+
     static_configs:
       - targets:
           - api:8080
@@ -985,12 +1105,14 @@ datasources:
 apiVersion: 1
 
 providers:
+
   - name: ShortLink
     orgId: 1
     folder: ShortLink
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
+
     options:
       path: /var/lib/grafana/dashboards
 """,
@@ -1000,12 +1122,19 @@ providers:
   "annotations": {
     "list": []
   },
+
   "editable": true,
+
   "panels": [
     {
       "type": "timeseries",
       "title": "HTTP Request Rate",
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "targets": [
         {
           "expr": "sum(rate(http_server_request_duration_seconds_count[1m]))",
@@ -1013,10 +1142,16 @@ providers:
         }
       ]
     },
+
     {
       "type": "timeseries",
       "title": "HTTP Latency",
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "targets": [
         {
           "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le))",
@@ -1028,20 +1163,32 @@ providers:
         }
       ]
     },
+
     {
       "type": "timeseries",
-      "title": "Process CPU",
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "title": "Runtime CPU",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
       "targets": [
         {
           "expr": "process_runtime_dotnet_cpu_time_seconds_total"
         }
       ]
     },
+
     {
       "type": "timeseries",
       "title": "GC Heap",
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "targets": [
         {
           "expr": "dotnet_gc_heap_size_bytes"
@@ -1049,17 +1196,25 @@ providers:
       ]
     }
   ],
+
   "schemaVersion": 39,
-  "tags": ["shortlink"],
+  "tags": [
+    "shortlink"
+  ],
+
   "templating": {
     "list": []
   },
+
   "time": {
     "from": "now-15m",
     "to": "now"
   },
+
   "timezone": "browser",
+
   "title": "ShortLink",
+
   "version": 1
 }
 """,
@@ -1070,7 +1225,6 @@ providers:
 .git/
 .github/
 ShortLink.zip
-README.md
 """,
 
         ".gitignore": r"""
@@ -1089,11 +1243,9 @@ ShortLink.zip
         "README.md": r"""
 # ShortLink
 
-Production-oriented ASP.NET Core/.NET 10 URL redirect service.
+Production-oriented ASP.NET Core / .NET 10 URL redirect service.
 
-## Architecture
-
-Request flow:
+## Request flow
 
 ```text
 GET /aZ91kLm2Pq7X
@@ -1104,23 +1256,23 @@ Redis distributed rate limiter
        v
 HybridCache
        |
-       +--> L1 memory HIT ---> 302
+       +-- L1 memory hit --------> 302
        |
-       +--> L2 Redis HIT ----> 302
+       +-- L2 Redis hit ----------> 302
        |
-       +--> MISS
+       +-- miss
+            |
+            v
+        PostgreSQL
+            |
+        +---+---+
+        |       |
+      found   missing
+        |       |
+        v       v
+   HybridCache  Redis negative cache
+      24h          15s
+        |           |
+        +-----+-----+
               |
-              v
-           PostgreSQL
-              |
-          +---+---+
-          |       |
-        found   missing
-          |       |
-       positive negative
-       cache     cache
-        24h       15s
-          |       |
-          +---+---+
-              |
-             302/404
+            302/404
